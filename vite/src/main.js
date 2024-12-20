@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 
 // Create the scene
 const scene = new THREE.Scene();
@@ -42,11 +44,4 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 });
 
-// Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-  dodecahedron.rotation.x += 0.01; // Rotate on the x-axis
-  dodecahedron.rotation.y += 0.01; // Rotate on the y-axis
-  renderer.render(scene, camera);
-}
-animate();
+renderer.render(scene, camera);
