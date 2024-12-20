@@ -12,6 +12,7 @@
     "vite": "^6.0.3"
   },
   "dependencies": {
-    "three": "^0.171.0"
+    "three": "^0.171.0",
+    "three-orbitcontrols": "^2.110.3"
   }
 }
