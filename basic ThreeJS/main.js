@@ -1,29 +1,59 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// Create the scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#F0F0F0');
+scene.background = new THREE.Color('#F0F0F0');  // Light background color
 
-const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 5;
+// Create a camera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 5;  // Camera positioned away from origin
 
+// Create a cube for visual representation
 const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({ color: '#468585', emissive: '#468585' });
-
+const material = new THREE.MeshStandardMaterial({ color: '#468585' });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-const light = new THREE.DirectionalLight(0x9cdba6, 10);
-light.position.set(1, 1, 1);
+// Add lighting
+const light = new THREE.DirectionalLight(0xFFFFFF, 1);
+light.position.set(1, 1, 2);  // Positioning the light source
 scene.add(light);
 
+// Create the WebGLRenderer
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);  // Append the canvas to the body
 
+// Create OrbitControls (camera orbiting and interaction)
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;   // Enable inertia-like effects
+controls.dampingFactor = 0.05;  // Damping factor for smooth transitions
+controls.enableZoom = true;     // Allow zooming
+controls.enablePan = true;      // Allow panning
+
+// Make the renderer responsive to window resizing
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// Animation loop
 function animate() {
-  requestAnimationFrame(animate);
+  requestAnimationFrame(animate);  // Recursive call for smooth animation
+
+  // Update the controls (important for damping and auto-rotate functionality)
+  controls.update();
+
+  // Rotate the cube for a little animation
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
+
+  // Render the scene
   renderer.render(scene, camera);
 }
+
+// Start the animation loop
 animate();
