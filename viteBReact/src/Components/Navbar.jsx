@@ -94,6 +94,7 @@ const Navbar = () => {
       {/* Spacer div to prevent content from going under navbar */}
       <div className="h-[73px]" />
 
+
       <style jsx>{`
         @keyframes slideIn {
           from {
