@@ -20,7 +20,7 @@ const Navbar = () => {
           {/* Menu for larger screens */}
           <div className="hidden lg:flex w-full justify-center">
             <ul className="text-white flex gap-x-12 font-light tracking-wide text-lg">
-              {['About Me', 'Projects', 'Resume', 'Contact'].map((item, index) => (
+              {['Somethin', 'Somethin', 'Somethin', 'Settings'].map((item, index) => (
                 <li key={item} className="relative py-2 group">
                   <a
                     href="#"
@@ -66,7 +66,7 @@ const Navbar = () => {
           }`}
         >
           <ul className="text-white flex flex-col gap-y-6 font-light tracking-wide text-lg">
-            {['About Me', 'Projects', 'Resume', 'Contact'].map((item, index) => (
+            {['Somethin', 'Somethin', 'Somethin', 'Settings'].map((item, index) => (
               <li 
                 key={item} 
                 className="relative py-2 group"
@@ -93,7 +93,6 @@ const Navbar = () => {
       </nav>
       {/* Spacer div to prevent content from going under navbar */}
       <div className="h-[73px]" />
-
 
       <style jsx>{`
         @keyframes slideIn {
