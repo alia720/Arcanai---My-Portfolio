@@ -20,7 +20,7 @@ const Navbar = () => {
           {/* Menu for larger screens */}
           <div className="hidden lg:flex w-full justify-center">
             <ul className="text-white flex gap-x-12 font-light tracking-wide text-lg">
-              {['Somethin', 'Somethin', 'Somethin', 'Settings'].map((item, index) => (
+              {['Something', 'Somethins', 'Somethin', 'Settings'].map((item, index) => (
                 <li key={item} className="relative py-2 group">
                   <a
                     href="#"
@@ -66,7 +66,7 @@ const Navbar = () => {
           }`}
         >
           <ul className="text-white flex flex-col gap-y-6 font-light tracking-wide text-lg">
-            {['Somethin', 'Somethin', 'Somethin', 'Settings'].map((item, index) => (
+            {['Something', 'Somethins', 'Somethin', 'Settings'].map((item, index) => (
               <li 
                 key={item} 
                 className="relative py-2 group"
