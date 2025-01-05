@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
 
 const vertexShader = `
 varying vec2 vUv;
@@ -76,22 +77,23 @@ void main() {
 `;
 
 const WaterRipple = () => {
+
     const containerRef = useRef(null);
     const time = useRef(0);
     const sphereRadius = 5;
     const raycaster = useRef(new THREE.Raycaster());
     const mouse = useRef(new THREE.Vector2());
-    const clickPoints = useRef([]);
-    const clickTimes = useRef([]);
+    
+    const cubeRef = useRef(null);
+    const coins = useRef([]);
+    const score = useRef(0);
+
+    const driftAngle = useRef(0);
+    const driftSpeed = useRef(0.002); // Controls drift speed
 
     useEffect(() => {
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000
-        );
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 10;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -102,7 +104,7 @@ const WaterRipple = () => {
         const material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 0 },
-                clickPoints: { value: Array(10).fill().map(() => new THREE.Vector2(0, 0)) }, // Fixed initialization
+                clickPoints: { value: Array(10).fill().map(() => new THREE.Vector2(0, 0)) },
                 clickTimes: { value: Array(10).fill(0) },
                 numClicks: { value: 0 }
             },
@@ -113,24 +115,210 @@ const WaterRipple = () => {
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
 
-        // Create cube
-        const cubeGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-        const cubeMaterial = new THREE.MeshPhongMaterial({ 
+        const cubeGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+
+        const cubeMaterial = new THREE.MeshPhongMaterial({
             color: 0xff9900,
             specular: 0x111111,
-            shininess: 30
+            shininess: 30,
+            transparent: true,
+            opacity: 0.9
         });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(0, 0, sphereRadius + 0.3);
+        cube.position.set(0, 0, sphereRadius - 0.1);
         scene.add(cube);
+        cubeRef.current = cube;
+    
+        const world = new CANNON.World({
+            gravity: new CANNON.Vec3(0, 0, 0)
+        });
 
-        // Lighting
+        world.defaultContactMaterial.friction = 0.1;
+        world.defaultContactMaterial.restitution = 0.1;
+        
+        const sphereBody = new CANNON.Body({
+            mass: 0,
+            shape: new CANNON.Sphere(sphereRadius),
+            position: new CANNON.Vec3(0, 0, 0)
+        });
+        world.addBody(sphereBody);
+        
+        const circleBody = new CANNON.Body({
+            mass: 0.6,
+            shape: new CANNON.Box(new CANNON.Vec3(0.2, 0.2, 0.2)),
+            position: new CANNON.Vec3(0, 0, sphereRadius + 0.1),
+            linearDamping: 0.5,
+            angularDamping: 0.7,
+            fixedRotation: false,
+            velocity: new CANNON.Vec3(0, 0, 0)
+        });
+
+        world.addBody(circleBody);
+
+        const createCoin = () => {
+            const coinGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+            const coinMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+            const coin = new THREE.Mesh(coinGeometry, coinMaterial);
+            
+            const phi = Math.random() * Math.PI * 2;
+            const theta = Math.random() * Math.PI;
+            coin.position.setFromSphericalCoords(sphereRadius + 0.3, theta, phi);
+            
+            scene.add(coin);
+            coins.current.push(coin);
+        };
+
         const light = new THREE.DirectionalLight(0xffffff, 1);
         light.position.set(1, 1, 1);
         scene.add(light);
         
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
+
+        const calculateWaveEffect = (position) => {
+            const uv = new THREE.Vector2(
+                (position.x / sphereRadius / 2) + 0.5,
+                (position.y / sphereRadius / 2) + 0.5
+            );
+
+            let totalWave = 0;
+            let force = new THREE.Vector3(0, 0, 0);
+
+            material.uniforms.clickPoints.value.forEach((clickPoint, i) => {
+                if (i >= material.uniforms.numClicks.value) return;
+
+                const timeSinceClick = time.current - material.uniforms.clickTimes.value[i];
+                const dist = new THREE.Vector2(
+                    clickPoint.x - uv.x,
+                    clickPoint.y - uv.y
+                ).length();
+
+                // Calculate wave height
+                const wave = (
+                    Math.sin(dist * 40.0 - timeSinceClick * 4.0) * 0.5 +
+                    Math.sin(dist * 30.0 - timeSinceClick * 3.0) * 0.3 +
+                    Math.sin(dist * 20.0 - timeSinceClick * 2.0) * 0.2
+                ) * Math.exp(-dist * 2.0) * Math.exp(-timeSinceClick * 0.4);
+
+                // Calculate force direction
+                if (dist > 0.001) {
+                    const direction = new THREE.Vector3(
+                        clickPoint.x - uv.x,
+                        clickPoint.y - uv.y,
+                        0
+                    ).normalize();
+
+                    const waveGradient = Math.cos(dist * 40.0 - timeSinceClick * 4.0) * 
+                                       Math.exp(-dist * 2.0) * 
+                                       Math.exp(-timeSinceClick * 0.4);
+                    
+                    force.add(direction.multiplyScalar(waveGradient * 0.1));
+                }
+
+                totalWave += wave;
+            });
+
+            return { height: totalWave * 0.4, force };
+        };
+
+        // Old custom Physics code before using built in CANNON
+        // const updateCubePhysics = () => {
+        //     const waveEffect = calculateWaveEffect(cube.position);
+            
+        //     // Add force towards front of sphere (camera-facing side)
+        //     const toFront = new THREE.Vector3(0, 0, 1);
+        //     const frontForce = toFront.multiplyScalar(0.01);
+        //     velocityRef.current.add(frontForce);
+            
+        //     // Calculate tangential forces
+        //     const normal = cube.position.clone().normalize();
+        //     const tangentialForce = waveEffect.force.clone().sub(
+        //         normal.multiplyScalar(waveEffect.force.dot(normal))
+        //     );
+        //     velocityRef.current.add(tangentialForce);
+            
+        //     // Stronger damping
+        //     velocityRef.current.multiplyScalar(0.9);
+            
+        //     // Apply position update
+        //     const surfaceHeight = sphereRadius + waveEffect.height + 0.3;
+        //     cube.position.add(velocityRef.current);
+            
+        //     // Keep cube on sphere surface
+        //     cube.position.normalize().multiplyScalar(surfaceHeight);
+            
+        //     // Constrain cube to visible hemisphere (z > -2)
+        //     if (cube.position.z < -2) {
+        //         cube.position.z = -2;
+        //         velocityRef.current.z = Math.abs(velocityRef.current.z) * 0.5;
+        //     }
+            
+        //     // Update rotation based on movement
+        //     cube.rotation.x += velocityRef.current.y;
+        //     cube.rotation.z -= velocityRef.current.x;
+        // };
+
+        const checkCoinCollisions = () => {
+            coins.current = coins.current.filter(coin => {
+                if (cubeRef.current.position.distanceTo(coin.position) < 0.5) {
+                    score.current += 1;
+                    scene.remove(coin);
+                    return false;
+                }
+                coin.rotation.y += 0.02;
+                return true;
+            });
+            
+            if (coins.current.length < 5) {
+                createCoin();
+            }
+        };
+
+        const animate = () => {
+            requestAnimationFrame(animate);
+            time.current += 0.01;
+            material.uniforms.time.value = time.current;
+            driftAngle.current += driftSpeed.current;
+        
+            const waveEffect = calculateWaveEffect(cube.position);
+    
+            // Increase force magnitude and ensure all axes are affected
+            const force = waveEffect.force.multiplyScalar(30); // Increased from 15
+            circleBody.applyForce(
+                new CANNON.Vec3(force.x, force.y, force.z * 0.5), // Added z-axis component
+                new CANNON.Vec3(
+                    circleBody.position.x + 0.1, 
+                    circleBody.position.y + 0.1,
+                    circleBody.position.z
+                ) // Offset force application point
+            );
+
+                // Add gentle circular drift force
+            const driftForce = new CANNON.Vec3(
+                Math.cos(driftAngle.current) * 0.1,
+                Math.sin(driftAngle.current) * 0.1,
+                0
+            );
+            circleBody.applyForce(driftForce, circleBody.position);
+        
+            // Gentler surface constraint
+            const pos = circleBody.position;
+            const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+            const toSphere = new CANNON.Vec3(
+                pos.x / distanceFromCenter,
+                pos.y / distanceFromCenter,
+                pos.z / distanceFromCenter
+            );
+            const surfaceForce = toSphere.scale(3 * (sphereRadius - 0.1 - distanceFromCenter));
+            circleBody.applyForce(surfaceForce, circleBody.position);
+        
+            world.step(1/60);
+            cube.position.copy(circleBody.position);
+            cube.quaternion.copy(circleBody.quaternion);
+            
+            checkCoinCollisions();
+            renderer.render(scene, camera);
+        };
 
         const onClick = (event) => {
             mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -143,7 +331,6 @@ const WaterRipple = () => {
                 const uv = intersects[0].uv;
                 const newClickPoint = new THREE.Vector2(uv.x, uv.y);
                 
-                // Update arrays while maintaining their size
                 const newClickPoints = [...material.uniforms.clickPoints.value];
                 const newClickTimes = [...material.uniforms.clickTimes.value];
                 
@@ -155,117 +342,13 @@ const WaterRipple = () => {
                 newClickPoints.push(newClickPoint);
                 newClickTimes.push(time.current);
         
-                // Update uniforms properly
                 material.uniforms.clickPoints.value = newClickPoints;
                 material.uniforms.clickTimes.value = newClickTimes;
-                material.uniforms.numClicks.value = newClickPoints.length;
-        
-                // Debug click points and times
-                console.log(`New click: (${newClickPoint.x}, ${newClickPoint.y}), Times: ${newClickTimes}`);
+                material.uniforms.numClicks.value = Math.min(newClickPoints.length, 10);
             }
         };
-        
-
-        const calculateWaveEffect = (uv, currentTime, clickPoints, clickTimes) => {
-            let totalWave = 0;
-            let force = new THREE.Vector2(0, 0);
-            
-            for (let i = 0; i < clickPoints.length; i++) {
-                const timeSinceClick = currentTime - clickTimes[i];
-                const toClick = new THREE.Vector2(
-                    clickPoints[i].x - uv.x,
-                    clickPoints[i].y - uv.y
-                );
-                const dist = toClick.length();
-                
-                const ripple = (
-                    Math.sin(dist * 40.0 - timeSinceClick * 4.0) * 0.5 +
-                    Math.sin(dist * 30.0 - timeSinceClick * 3.0) * 0.3 +
-                    Math.sin(dist * 20.0 - timeSinceClick * 2.0) * 0.2
-                ) * Math.exp(-dist * 2.0) * Math.exp(-timeSinceClick * 0.4);
-                
-                // Debug the ripple and force calculations
-                console.log(`Ripple ${i}: dist=${dist}, ripple=${ripple}, force=${force}`);
-        
-                if (dist > 0.001) {
-                    const waveGradient = Math.cos(dist * 40.0 - timeSinceClick * 4.0) * 
-                                         Math.exp(-dist * 2.0) * 
-                                         Math.exp(-timeSinceClick * 0.4);
-                    toClick.normalize().multiplyScalar(waveGradient * 0.5); // Adjust multiplier
-                    force.add(toClick);
-                }
-                
-                totalWave += ripple;
-            }
-            
-            console.log(`Total wave: ${totalWave}, Force: ${force}`);
-            return { height: totalWave * 0.4, force: force };
-        };
-        
-
-        let cubeVelocity = new THREE.Vector2(0, 0);
-        const cubeInertia = 0.98; // Drag factor
-        const cubeSpeed = 0.05;   // Movement speed multiplier
-
-        const animate = () => {
-            requestAnimationFrame(animate);
-            time.current += 0.01;
-            material.uniforms.time.value = time.current;
-        
-            // Update cube position based on waves
-            if (cube && clickPoints.current.length > 0) {
-                const cubeUV = new THREE.Vector2(
-                    (cube.position.x / sphereRadius / 2) + 0.5,
-                    (cube.position.y / sphereRadius / 2) + 0.5
-                );
-        
-                const waveEffect = calculateWaveEffect(
-                    cubeUV, 
-                    time.current, 
-                    clickPoints.current, 
-                    clickTimes.current
-                );
-        
-                // Debug the cube's velocity and wave effect
-                console.log(`Cube position: ${cube.position}, Velocity: ${cubeVelocity}, Wave effect: ${waveEffect.height}`);
-        
-                // Update cube velocity based on wave force
-                console.log(`Wave Force: ${waveEffect.force}`);
-                cubeVelocity.add(waveEffect.force.multiplyScalar(cubeSpeed));
-                cubeVelocity.multiplyScalar(cubeInertia);
-        
-                // Update cube position on sphere surface
-                const currentPos = new THREE.Vector3(
-                    cube.position.x,
-                    cube.position.y,
-                    cube.position.z
-                );
-
-                console.log(`Current Position: ${currentPos}`);
-        
-                // Add velocity to position
-                currentPos.x += cubeVelocity.x;
-                currentPos.y += cubeVelocity.y;
-        
-                // Project back onto sphere surface
-                const normalizedPos = currentPos.normalize();
-                cube.position.copy(normalizedPos.multiplyScalar(sphereRadius + waveEffect.height + 0.3));
-        
-                // Rotate cube based on movement
-                cube.rotation.x += cubeVelocity.y * 2;
-                cube.rotation.z -= cubeVelocity.x * 2;
-
-                console.log(`Cube Velocity: ${cubeVelocity}`);
-                console.log(`Cube Position: ${cube.position}`);
-
-            }
-
-            renderer.render(scene, camera);
-        };
-        
 
         animate();
-
         window.addEventListener('click', onClick);
         
         const handleResize = () => {
