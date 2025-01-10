@@ -290,7 +290,7 @@ const WaterRipple = () => {
                     circleBody.position.x + 0.1, 
                     circleBody.position.y + 0.1,
                     circleBody.position.z
-                ) // Offset force application point
+                )
             );
 
                 // Add gentle circular drift force
