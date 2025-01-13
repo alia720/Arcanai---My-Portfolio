@@ -292,7 +292,6 @@ const WaterRipple = () => {
                     circleBody.position.z
                 )
             );
-
             const driftForce = new CANNON.Vec3(
                 Math.cos(driftAngle.current) * 0.1,
                 Math.sin(driftAngle.current) * 0.1,
