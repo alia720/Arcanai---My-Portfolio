@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
@@ -9,6 +9,7 @@ uniform float time;
 uniform vec2 clickPoints[10];
 uniform float clickTimes[10];
 uniform int numClicks;
+uniform float bassIntensity;
 
 void main() {
     vUv = uv;
@@ -27,7 +28,8 @@ void main() {
         wave += ripple;
     }
     
-    pos += normal * wave * 0.4;
+    // Modify the wave amplitude based on bass intensity
+    pos += normal * wave * (0.4 + bassIntensity * 2.0);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 }
 `;
@@ -46,7 +48,7 @@ void main() {
     float clampedWave = clamp(wave, -1.0, 1.0);
     
     // Hextech colors
-    vec3 deepColor = vec3(0.05, 0.0, 0.1);      // Dark purple base
+    vec3 deepColor = vec3(0.05, 0.02, 0.1);      // Dark purple base
     vec3 energyColor = vec3(0.7, 0.2, 0.9);     // Bright hextech purple
     vec3 glowColor = vec3(0.9, 0.4, 1.0);       // Bright magenta glow
     vec3 rippleColor = vec3(1.0, 0.2, 0.5);     // Bright pink for ripples
@@ -76,20 +78,23 @@ void main() {
 }
 `;
 
-const WaterRipple = () => {
-
+const AudioRippleSphere = () => {
     const containerRef = useRef(null);
     const time = useRef(0);
     const sphereRadius = 5;
     const raycaster = useRef(new THREE.Raycaster());
     const mouse = useRef(new THREE.Vector2());
-    
-    const cubeRef = useRef(null);
-    const coins = useRef([]);
-    const score = useRef(0);
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
+    const sourceRef = useRef(null);
+    const materialRef = useRef(null);
+    const [isListening, setIsListening] = useState(false);
 
-    const driftAngle = useRef(0);
-    const driftSpeed = useRef(0.002); // Controls drift speed
+    // Persistent ripple state
+    const ripplePointsRef = useRef({
+        points: [],
+        times: []
+    });
 
     useEffect(() => {
         const scene = new THREE.Scene();
@@ -106,36 +111,21 @@ const WaterRipple = () => {
                 time: { value: 0 },
                 clickPoints: { value: Array(10).fill().map(() => new THREE.Vector2(0, 0)) },
                 clickTimes: { value: Array(10).fill(0) },
-                numClicks: { value: 0 }
+                numClicks: { value: 0 },
+                bassIntensity: { value: 0.0 }
             },
             vertexShader,
             fragmentShader
         });
+        materialRef.current = material;
 
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
-
-        const cubeGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-
-        const cubeMaterial = new THREE.MeshPhongMaterial({
-            color: 0xff9900,
-            specular: 0x111111,
-            shininess: 30,
-            transparent: true,
-            opacity: 0.9
-        });
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(0, 0, sphereRadius - 0.1);
-        scene.add(cube);
-        cubeRef.current = cube;
     
         const world = new CANNON.World({
             gravity: new CANNON.Vec3(0, 0, 0)
         });
 
-        world.defaultContactMaterial.friction = 0.1;
-        world.defaultContactMaterial.restitution = 0.1;
-        
         const sphereBody = new CANNON.Body({
             mass: 0,
             shape: new CANNON.Sphere(sphereRadius),
@@ -143,31 +133,6 @@ const WaterRipple = () => {
         });
         world.addBody(sphereBody);
         
-        const circleBody = new CANNON.Body({
-            mass: 0.6,
-            shape: new CANNON.Box(new CANNON.Vec3(0.2, 0.2, 0.2)),
-            position: new CANNON.Vec3(0, 0, sphereRadius + 0.1),
-            linearDamping: 0.5,
-            angularDamping: 0.7,
-            fixedRotation: false,
-            velocity: new CANNON.Vec3(0, 0, 0)
-        });
-
-        world.addBody(circleBody);
-
-        const createCoin = () => {
-            const coinGeometry = new THREE.SphereGeometry(0.2, 8, 8);
-            const coinMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
-            const coin = new THREE.Mesh(coinGeometry, coinMaterial);
-            
-            const phi = Math.random() * Math.PI * 2;
-            const theta = Math.random() * Math.PI;
-            coin.position.setFromSphericalCoords(sphereRadius + 0.3, theta, phi);
-            
-            scene.add(coin);
-            coins.current.push(coin);
-        };
-
         const light = new THREE.DirectionalLight(0xffffff, 1);
         light.position.set(1, 1, 1);
         scene.add(light);
@@ -175,149 +140,47 @@ const WaterRipple = () => {
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
 
-        const calculateWaveEffect = (position) => {
-            const uv = new THREE.Vector2(
-                (position.x / sphereRadius / 2) + 0.5,
-                (position.y / sphereRadius / 2) + 0.5
-            );
-
-            let totalWave = 0;
-            let force = new THREE.Vector3(0, 0, 0);
-
-            material.uniforms.clickPoints.value.forEach((clickPoint, i) => {
-                if (i >= material.uniforms.numClicks.value) return;
-
-                const timeSinceClick = time.current - material.uniforms.clickTimes.value[i];
-                const dist = new THREE.Vector2(
-                    clickPoint.x - uv.x,
-                    clickPoint.y - uv.y
-                ).length();
-
-                // Calculate wave height
-                const wave = (
-                    Math.sin(dist * 40.0 - timeSinceClick * 4.0) * 0.5 +
-                    Math.sin(dist * 30.0 - timeSinceClick * 3.0) * 0.3 +
-                    Math.sin(dist * 20.0 - timeSinceClick * 2.0) * 0.2
-                ) * Math.exp(-dist * 2.0) * Math.exp(-timeSinceClick * 0.4);
-
-                // Calculate force direction
-                if (dist > 0.001) {
-                    const direction = new THREE.Vector3(
-                        clickPoint.x - uv.x,
-                        clickPoint.y - uv.y,
-                        0
-                    ).normalize();
-
-                    const waveGradient = Math.cos(dist * 40.0 - timeSinceClick * 4.0) * 
-                                       Math.exp(-dist * 2.0) * 
-                                       Math.exp(-timeSinceClick * 0.4);
-                    
-                    force.add(direction.multiplyScalar(waveGradient * 0.1));
-                }
-
-                totalWave += wave;
-            });
-
-            return { height: totalWave * 0.4, force };
-        };
-
-        // Old custom Physics code before using built in CANNON
-        // const updateCubePhysics = () => {
-        //     const waveEffect = calculateWaveEffect(cube.position);
-            
-        //     // Add force towards front of sphere (camera-facing side)
-        //     const toFront = new THREE.Vector3(0, 0, 1);
-        //     const frontForce = toFront.multiplyScalar(0.01);
-        //     velocityRef.current.add(frontForce);
-            
-        //     // Calculate tangential forces
-        //     const normal = cube.position.clone().normalize();
-        //     const tangentialForce = waveEffect.force.clone().sub(
-        //         normal.multiplyScalar(waveEffect.force.dot(normal))
-        //     );
-        //     velocityRef.current.add(tangentialForce);
-            
-        //     // Stronger damping
-        //     velocityRef.current.multiplyScalar(0.9);
-            
-        //     // Apply position update
-        //     const surfaceHeight = sphereRadius + waveEffect.height + 0.3;
-        //     cube.position.add(velocityRef.current);
-            
-        //     // Keep cube on sphere surface
-        //     cube.position.normalize().multiplyScalar(surfaceHeight);
-            
-        //     // Constrain cube to visible hemisphere (z > -2)
-        //     if (cube.position.z < -2) {
-        //         cube.position.z = -2;
-        //         velocityRef.current.z = Math.abs(velocityRef.current.z) * 0.5;
-        //     }
-            
-        //     // Update rotation based on movement
-        //     cube.rotation.x += velocityRef.current.y;
-        //     cube.rotation.z -= velocityRef.current.x;
-        // };
-
-        const checkCoinCollisions = () => {
-            coins.current = coins.current.filter(coin => {
-                if (cubeRef.current.position.distanceTo(coin.position) < 0.5) {
-                    score.current += 1;
-                    scene.remove(coin);
-                    return false;
-                }
-                coin.rotation.y += 0.02;
-                return true;
-            });
-            
-            if (coins.current.length < 5) {
-                createCoin();
-            }
-        };
-
         const animate = () => {
             requestAnimationFrame(animate);
             time.current += 0.01;
             material.uniforms.time.value = time.current;
-            driftAngle.current += driftSpeed.current;
-        
-            const waveEffect = calculateWaveEffect(cube.position);
+
+            // Audio frequency visualization
+            if (analyserRef.current) {
+                const frequencyData = new Uint8Array(analyserRef.current.frequencyBinCount);
+                analyserRef.current.getByteFrequencyData(frequencyData);
+                
+                // Average frequency across bass and mid frequencies
+                const bassFrequency = frequencyData.slice(0, 8).reduce((a, b) => a + b, 0) / 8 / 255;
+
+                //material.uniforms.bassIntensity.value = bassFrequency;
     
-            // Increase force magnitude and ensure all axes are affected
-            const force = waveEffect.force.multiplyScalar(30); // Increased from 15
-            circleBody.applyForce(
-                new CANNON.Vec3(force.x, force.y, force.z * 0.5), // Added z-axis component
-                new CANNON.Vec3(
-                    circleBody.position.x + 0.1, 
-                    circleBody.position.y + 0.1,
-                    circleBody.position.z
-                )
-            );
-            const driftForce = new CANNON.Vec3(
-                Math.cos(driftAngle.current) * 0.1,
-                Math.sin(driftAngle.current) * 0.1,
-                0
-            );
-            circleBody.applyForce(driftForce, circleBody.position);
-        
-            // Gentler surface constraint
-            const pos = circleBody.position;
-            const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-            const toSphere = new CANNON.Vec3(
-                pos.x / distanceFromCenter,
-                pos.y / distanceFromCenter,
-                pos.z / distanceFromCenter
-            );
-            const surfaceForce = toSphere.scale(3 * (sphereRadius - 0.1 - distanceFromCenter));
-            circleBody.applyForce(surfaceForce, circleBody.position);
-        
-            world.step(1/60);
-            cube.position.copy(circleBody.position);
-            cube.quaternion.copy(circleBody.quaternion);
-            
-            checkCoinCollisions();
+                // Add ripples when audio is loud enough, with reduced frequency
+                if (bassFrequency > 0.5 && Math.random() > 0.7) { // Increased threshold and added randomization
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.random() * 0.4 + 0.3; // Keep ripples more centered
+                    const randomX = 0.5 + Math.cos(angle) * radius;
+                    const randomY = 0.5 + Math.sin(angle) * radius;
+                    const newClickPoint = new THREE.Vector2(randomX, randomY);
+                    
+                    // Manage ripple points (max 5 instead of 10 for less chaos)
+                    if (ripplePointsRef.current.points.length >= 5) {
+                        ripplePointsRef.current.points.shift();
+                        ripplePointsRef.current.times.shift();
+                    }
+                    
+                    ripplePointsRef.current.points.push(newClickPoint);
+                    ripplePointsRef.current.times.push(time.current);
+                    
+                    // Update shader uniforms
+                    material.uniforms.clickPoints.value = ripplePointsRef.current.points;
+                    material.uniforms.clickTimes.value = ripplePointsRef.current.times;
+                    material.uniforms.numClicks.value = ripplePointsRef.current.points.length;
+                }
+            }
+
             renderer.render(scene, camera);
         };
-
         const onClick = (event) => {
             mouse.current.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -329,20 +192,19 @@ const WaterRipple = () => {
                 const uv = intersects[0].uv;
                 const newClickPoint = new THREE.Vector2(uv.x, uv.y);
                 
-                const newClickPoints = [...material.uniforms.clickPoints.value];
-                const newClickTimes = [...material.uniforms.clickTimes.value];
-                
-                if (newClickPoints.length >= 10) {
-                    newClickPoints.shift();
-                    newClickTimes.shift();
+                // Manage ripple points (max 10)
+                if (ripplePointsRef.current.points.length >= 10) {
+                    ripplePointsRef.current.points.shift();
+                    ripplePointsRef.current.times.shift();
                 }
                 
-                newClickPoints.push(newClickPoint);
-                newClickTimes.push(time.current);
-        
-                material.uniforms.clickPoints.value = newClickPoints;
-                material.uniforms.clickTimes.value = newClickTimes;
-                material.uniforms.numClicks.value = Math.min(newClickPoints.length, 10);
+                ripplePointsRef.current.points.push(newClickPoint);
+                ripplePointsRef.current.times.push(time.current);
+                
+                // Update shader uniforms
+                material.uniforms.clickPoints.value = ripplePointsRef.current.points;
+                material.uniforms.clickTimes.value = ripplePointsRef.current.times;
+                material.uniforms.numClicks.value = ripplePointsRef.current.points.length;
             }
         };
 
@@ -364,16 +226,70 @@ const WaterRipple = () => {
         };
     }, []);
 
+    const startAudioVisualization = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContextRef.current = audioContext;
+            
+            const analyser = audioContext.createAnalyser();
+            analyserRef.current = analyser;
+            analyser.fftSize = 128;
+            
+            const source = audioContext.createMediaStreamSource(stream);
+            sourceRef.current = source;
+            
+            source.connect(analyser);
+            
+            setIsListening(true);
+        } catch (err) {
+            console.error("Error accessing microphone", err);
+        }
+    };
+
+    const stopAudioVisualization = () => {
+        if (sourceRef.current) {
+            sourceRef.current.disconnect();
+        }
+        if (audioContextRef.current) {
+            audioContextRef.current.close();
+        }
+        setIsListening(false);
+    };
+
     return (
-        <div ref={containerRef} style={{ 
-            width: '100vw', 
-            height: '100vh',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            background: '#000'
-        }} />
+        <div>
+            <div 
+                ref={containerRef} 
+                style={{ 
+                    width: '100vw', 
+                    height: '100vh',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    background: 'transparent'
+                }} 
+            />
+            <div style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 10
+            }}>
+                {!isListening ? (
+                    <button onClick={startAudioVisualization}>
+                        Start Audio Visualization
+                    </button>
+                ) : (
+                    <button onClick={stopAudioVisualization}>
+                        Stop Audio Visualization
+                    </button>
+                )}
+            </div>
+        </div>
     );
 };
 
-export default WaterRipple;
+export default AudioRippleSphere;
