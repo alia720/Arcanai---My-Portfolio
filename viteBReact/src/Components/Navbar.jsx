@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+// src/Components/Navbar.jsx
+import React, { useState, useRef, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 
 const AnimatedEye = () => {
   const eyeRef = useRef(null);
@@ -32,13 +34,10 @@ const AnimatedEye = () => {
                  transition-transform duration-300 bg-gradient-to-br from-purple-900/40 
                  to-cyan-900/30"
     >
-      {/* Iris pattern */}
       <div className="absolute inset-0 rounded-full">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(202,234,245,0.2)_0%,_transparent_60%)] 
                         animate-spin-slow opacity-50" />
       </div>
-
-      {/* Pupil with cybernetic details */}
       <div
         ref={pupilRef}
         className="absolute top-1/2 left-1/2 w-4 h-4 bg-black rounded-full 
@@ -50,12 +49,8 @@ const AnimatedEye = () => {
         <div className="absolute bottom-1 right-1 w-1 h-1 bg-purple-400 rounded-full 
                         shadow-[0_0_4px_1px_rgba(168,85,247,0.2)]" />
       </div>
-
-      {/* Hexagonal grid overlay */}
       <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,_transparent_0px,_transparent_5px,_rgba(168,85,247,0.1)_5px,_rgba(168,85,247,0.1)_6px)] 
                       opacity-30 mix-blend-overlay" />
-      
-      {/* Cybernetic rim lighting */}
       <div className="absolute inset-0 rounded-full border border-cyan-400/20 
                       pointer-events-none shadow-[inset_0_0_12px_2px_rgba(34,211,238,0.15)]" />
     </div>
@@ -64,6 +59,13 @@ const AnimatedEye = () => {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const navItems = [
+    { label: 'Dashboard', path: '/dashboard' },
+    { label: 'Projects', path: '/projects' },
+    { label: 'About', path: '/about' },
+    // You can add more routes as needed
+  ];
 
   return (
     <>
@@ -75,18 +77,25 @@ const Navbar = () => {
 
           <div className="hidden lg:flex w-full justify-center">
             <ul className="flex gap-x-12 font-light tracking-widest text-lg">
-              {['Dashboard', 'Systems', 'Sensors', 'Settings'].map((item) => (
-                <li key={item} className="relative py-2 group">
-                  <button className="inline-block relative no-underline transform transition-all duration-300 group-hover:-translate-y-0.5">
+              {navItems.map((item) => (
+                <li key={item.path} className="relative py-2 group">
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `inline-block relative no-underline transform transition-all duration-300 ${
+                        isActive ? 'text-cyan-300' : 'text-white'
+                      } group-hover:-translate-y-0.5`
+                    }
+                  >
                     <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent relative z-10">
-                      {item}
+                      {item.label}
                       <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <span className="absolute -top-2 -left-1 w-1 h-1 bg-cyan-400 rounded-full animate-float" />
                         <span className="absolute -top-1 -right-2 w-1 h-1 bg-purple-400 rounded-full animate-float-delay" />
                       </span>
                     </span>
                     <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-cyan-400/80 to-purple-400/80 group-hover:w-full transition-all duration-300" />
-                  </button>
+                  </NavLink>
                 </li>
               ))}
             </ul>
@@ -109,17 +118,17 @@ const Navbar = () => {
           isOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0'
         }`}>
           <div className="flex flex-col gap-y-8 items-center py-4">
-            {['Dashboard', 'Systems', 'Sensors', 'Settings'].map((item, index) => (
-              <button 
-                key={item} 
+            {navItems.map((item, index) => (
+              <NavLink 
+                key={item.path}
+                to={item.path}
                 className="text-lg font-light tracking-wider opacity-0 animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <span className="bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
-                  {item}
-                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-cyan-400/80 to-purple-400/80 group-hover:w-full transition-all duration-300" />
+                  {item.label}
                 </span>
-              </button>
+              </NavLink>
             ))}
           </div>
         </div>
