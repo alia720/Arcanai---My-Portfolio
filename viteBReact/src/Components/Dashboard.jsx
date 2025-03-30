@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const DashboardMetric = ({ label, value, icon, maxValue = 100, color = "cyan" }) => {
   const percentage = (value / maxValue) * 100;
@@ -45,7 +45,6 @@ const SystemStatus = ({ status = "online" }) => {
   );
 };
 
-// SVG Icons
 const CpuIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
@@ -87,39 +86,97 @@ const Dashboard = () => {
     cpu: 0,
     memory: 0,
     network: 0,
-    projects: 0,
-    skills: 0,
-    experience: 0
+    fps: 0,
+    domSize: 0,
+    loadTime: 0
   });
   
-  useEffect(() => {
-    // Simulate loading of metrics
-    const interval = setInterval(() => {
-      setMetrics({
-        cpu: Math.floor(70 + Math.random() * 20),
-        memory: Math.floor(60 + Math.random() * 30),
-        network: Math.floor(80 + Math.random() * 15),
-        projects: 12,
-        skills: 24,
-        experience: 5
-      });
-    }, 3000);
+  const fpsRef = useRef(0);
+  const frameCountRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
+  const animationFrameRef = useRef(null);
+  
+
+  const calculateFPS = () => {
+    frameCountRef.current++;
+    const currentTime = performance.now();
     
-    // Initial animation from 0 to values
-    const initialTimeout = setTimeout(() => {
+
+    if (currentTime - lastTimeRef.current >= 1000) {
+      fpsRef.current = Math.round(frameCountRef.current * 1000 / (currentTime - lastTimeRef.current));
+      frameCountRef.current = 0;
+      lastTimeRef.current = currentTime;
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(calculateFPS);
+  };
+  
+  useEffect(() => {
+    animationFrameRef.current = requestAnimationFrame(calculateFPS);
+    
+    const collectMetrics = () => {
+      const resourceEntries = performance.getEntriesByType('resource');
+      const resourceUsage = resourceEntries.reduce((acc, entry) => acc + entry.duration, 0);
+      const cpuUsage = Math.min(Math.floor((resourceUsage / 1000) * 10), 100);
+      
+      let memoryUsage = 0;
+      if (window.performance && performance.memory) {
+        memoryUsage = Math.floor((performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100);
+      } else {
+        const domNodes = document.querySelectorAll('*').length;
+        memoryUsage = Math.min(Math.floor(domNodes / 10), 100);
+      }
+      
+      let networkSpeed = 0;
+      if (navigator.connection) {
+        const connectionTypes = {
+          'slow-2g': 10,
+          '2g': 30,
+          '3g': 60,
+          '4g': 90,
+          'ethernet': 95,
+          'wifi': 85,
+          'bluetooth': 50,
+          'cellular': 75
+        };
+        networkSpeed = connectionTypes[navigator.connection.effectiveType] || 80;
+      } else {
+        networkSpeed = Math.min(Math.floor(100 - (resourceEntries.length / 50) * 100), 100);
+        if (networkSpeed < 0) networkSpeed = 80; // Default fallback if calculation goes weird
+      }
+      
+      const domSize = document.querySelectorAll('*').length;
+      
+      let loadTime = 0;
+      if (performance.getEntriesByType) {
+        const navigationEntry = performance.getEntriesByType('navigation')[0];
+        if (navigationEntry) {
+          loadTime = Math.floor(navigationEntry.loadEventEnd - navigationEntry.startTime);
+        } else if (window.performance && window.performance.timing) {
+          const pageLoadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+          loadTime = Math.floor(pageLoadTime);
+        }
+      }
+      
       setMetrics({
-        cpu: 78,
-        memory: 64,
-        network: 92,
-        projects: 12,
-        skills: 24,
-        experience: 5
+        cpu: cpuUsage,
+        memory: memoryUsage,
+        network: networkSpeed,
+        fps: fpsRef.current,
+        domSize: domSize,
+        loadTime: loadTime || 1000
       });
-    }, 500);
+    };
+    
+    collectMetrics();
+    
+    const interval = setInterval(collectMetrics, 1000);
     
     return () => {
       clearInterval(interval);
-      clearTimeout(initialTimeout);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
   
@@ -128,11 +185,11 @@ const Dashboard = () => {
       <div className="h-[2px] w-full max-w-md mx-auto mb-8 bg-gradient-to-r from-blue-400/0 via-cyan-300/80 to-blue-400/0 animate-pulse" />
       
       <h1 className="text-3xl font-light mb-1 tracking-wider text-center bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-        SYSTEMS OVERVIEW
+        SYSTEM PERFORMANCE
       </h1>
       
       <p className="text-center text-gray-400 font-light tracking-wide mb-10">
-        <SystemStatus status="online" /> // Connection established
+        <SystemStatus status="online" />
       </p>
       
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -144,39 +201,39 @@ const Dashboard = () => {
         />
         
         <DashboardMetric 
-          label="MEMORY ALLOCATION" 
+          label="MEMORY USAGE" 
           value={metrics.memory} 
           icon={<MemoryIcon />} 
           color="purple" 
         />
         
         <DashboardMetric 
-          label="NETWORK UPLINK" 
+          label="NETWORK PERFORMANCE" 
           value={metrics.network} 
           icon={<NetworkIcon />} 
           color="green" 
         />
         
         <DashboardMetric 
-          label="PROJECTS DEPLOYED" 
-          value={metrics.projects} 
-          maxValue={20}
+          label="FPS COUNTER" 
+          value={metrics.fps} 
+          maxValue={200}
           icon={<CpuIcon />} 
           color="cyan" 
         />
         
         <DashboardMetric 
-          label="SKILL MODULES" 
-          value={metrics.skills} 
-          maxValue={30}
+          label="DOM ELEMENTS" 
+          value={metrics.domSize} 
+          maxValue={2000}
           icon={<MemoryIcon />} 
           color="purple" 
         />
         
         <DashboardMetric 
-          label="EXPERIENCE MATRIX" 
-          value={metrics.experience} 
-          maxValue={10}
+          label="PAGE LOAD TIME (MS)" 
+          value={metrics.loadTime} 
+          maxValue={5000}
           icon={<NetworkIcon />} 
           color="green" 
         />

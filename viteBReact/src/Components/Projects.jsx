@@ -125,27 +125,27 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
-      title: "Neural Interface",
-      description: "A responsive web application for seamless interaction with neural networks and machine learning models.",
-      techStack: ["React", "TensorFlow.js", "WebGL"],
+      title: "Manjots Neural Interface",
+      description: "A responsive web application for seamless interaction with Manjots networks.",
+      techStack: ["React", "TailwindCSS", "WebGL"],
       image: "/api/placeholder/400/320",
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
     },
     {
       id: 2,
-      title: "Quantum Visualization",
-      description: "Interactive data visualization platform for complex quantum computing simulations and results.",
-      techStack: ["Three.js", "D3.js", "WebAssembly"],
+      title: "Idk something something Visualization",
+      description: "Interactive visualization platform for #1 quantum computing simulations.",
+      techStack: ["Three.js", "Node.js", "Test.js"],
       image: "/api/placeholder/400/320",
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
     },
     {
       id: 3,
-      title: "Cybernetic OS",
-      description: "Operating system interface concept with futuristic UX/UI design principles for enhanced productivity.",
-      techStack: ["React", "Electron", "Node.js"],
+      title: "EggLoL",
+      description: "League of Legos discord bot shenanigans",
+      techStack: ["discord.py", "Python", "Docker"],
       image: "/api/placeholder/400/320",
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
@@ -161,7 +161,7 @@ const Projects = () => {
       </h1>
       
       <p className="text-center text-gray-400 font-light tracking-wide mb-10">
-        Archived neural network solutions and virtual constructs
+        The Archived network solutions and virtual constructs
       </p>
       
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
