@@ -6,33 +6,44 @@ const TerminalAbout = () => {
   const [showCursor, setShowCursor] = useState(true);
   const terminalRef = useRef(null);
   
-  // Define the text content to be displayed
   const terminalContent = [
-    { type: 'command', text: 'sudo access --profile developer' },
+    { type: 'command', text: 'sudo access --profile ali-alyasseen' },
     { type: 'response', text: 'Access granted. Loading developer profile...' },
-    { type: 'response', text: 'Decrypting personal data matrices...' },
-    { type: 'header', text: 'DEVELOPER PROFILE' },
-    { type: 'info', text: 'Name: [YOUR NAME]' },
-    { type: 'info', text: 'Role: Full Stack Developer' },
-    { type: 'info', text: 'Status: Available for new projects' },
+    { type: 'response', text: 'Decrypting academic records...' },
+    { type: 'header', text: 'ACADEMIC PROFILE' },
+    { type: 'info', text: 'Name: Ali Al Yasseen' },
+    { type: 'info', text: 'Institution: University of Calgary' },
+    { type: 'info', text: 'Program: B.Sc Computer Science (Exp. 2026)' },
+    { type: 'info', text: 'Status: Available for internships' },
     { type: 'command', text: 'cat skills.json' },
     { type: 'code', text: `{
-  "frontend": ["React", "JavaScript", "TypeScript", "HTML5", "CSS3", "Tailwind CSS"],
-  "backend": ["Node.js", "Express", "Python", "Django", "RESTful APIs"],
-  "database": ["MongoDB", "PostgreSQL", "Firebase", "Redis"],
-  "tools": ["Git", "Docker", "AWS", "Webpack", "Jest"]
+  "languages": ["C", "Assembly", "Python", "TypeScript", "Java", "JavaScript"],
+  "frameworks": ["React", "Node.js", "Svelte", "PyQt6", "Tailwind CSS"],
+  "systems": ["Linux", "Docker", "TCP Socket Programming", "Real-Time Systems"],
+  "databases": ["PostgreSQL", "FastDB"],
+  "tools": ["Git/GitHub", "Make", "REST API Development", "Web Scraping"]
 }` },
-    { type: 'command', text: 'cat about.txt' },
-    { type: 'paragraph', text: 'I am a passionate developer focused on creating immersive digital experiences with clean code and innovative solutions. My background in computer science and design allows me to bridge the gap between functionality and aesthetics.' },
-    { type: 'paragraph', text: 'When not coding, I explore emerging technologies and contribute to open-source projects.' },
-    { type: 'command', text: 'cat contact.txt' },
-    { type: 'info', text: 'Email: your.email@example.com' },
-    { type: 'info', text: 'GitHub: github.com/yourusername' },
-    { type: 'info', text: 'LinkedIn: linkedin.com/in/yourusername' },
+    { type: 'command', text: 'cat experience.txt' },
+    { type: 'paragraph', text: 'Schulich Ignite (Google IgniteCS) | Feb 2025 - May 2025' },
+    { type: 'paragraph', text: '• Taught Python fundamentals to 6+ students using Processing.py' },
+    { type: 'paragraph', text: '• Developed interactive coding exercises and grading rubrics' },
+    { type: 'paragraph', text: '• Collaborated on curriculum development and lesson planning' },
+    { type: 'command', text: 'cat contact.sh' },
+    { type: 'info', text: 'Email: ali.alyasseen@ucalgary.ca' },
+    { type: 'info', text: 'GitHub: github.com/alia720' },
+    { type: 'info', text: 'LinkedIn: linkedin.com/in/ali-al-yasseen-b76a15250' },
+    { type: 'info', text: 'Phone: (587) 500-4117' },
+    { type: 'command', text: 'download resume.pdf' },
+    { type: 'response', text: 'Initiating secure download...' },
+    { 
+      type: 'link',
+      text: '📄 Download Full Resume (PDF)',
+      url: '/ali-alyasseen-resume.pdf' // Update this path to match your actual resume file
+    },
     { type: 'command', text: 'exit' },
-    { type: 'response', text: 'Connection maintained. Terminal will remain active.' },
+    { type: 'response', text: 'Session maintained - Terminal ready for collaboration opportunities' },
   ];
-  
+
   // Typing effect
   useEffect(() => {
     if (currentIndex < terminalContent.length) {
@@ -40,7 +51,6 @@ const TerminalAbout = () => {
         setDisplayText(prev => [...prev, terminalContent[currentIndex]]);
         setCurrentIndex(prevIndex => prevIndex + 1);
         
-        // Scroll to bottom
         if (terminalRef.current) {
           terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
         }
@@ -49,7 +59,7 @@ const TerminalAbout = () => {
       return () => clearTimeout(timeout);
     }
   }, [currentIndex]);
-  
+
   // Blinking cursor effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,7 +68,7 @@ const TerminalAbout = () => {
     
     return () => clearInterval(interval);
   }, []);
-  
+
   // Render different types of content
   const renderContent = (item, index) => {
     switch (item.type) {
@@ -92,18 +102,29 @@ const TerminalAbout = () => {
         );
       case 'paragraph':
         return <p className="text-gray-300 mt-1 mb-2" key={index}>{item.text}</p>;
+      case 'link':
+        return (
+          <a
+            href={item.url}
+            className="ml-4 text-cyan-300 hover:text-cyan-200 transition-colors underline"
+            target="_blank"
+            rel="noopener noreferrer"
+            key={index}
+          >
+            {item.text}
+          </a>
+        );
       default:
         return <div key={index}>{item.text}</div>;
     }
   };
-  
+
   return (
     <section className="py-16 px-6 relative z-10">
       <div className="h-[2px] w-full max-w-md mx-auto mb-8 bg-gradient-to-r from-blue-400/0 via-cyan-300/80 to-blue-400/0 animate-pulse" />
       
       <div className="max-w-4xl mx-auto">
         <div className="bg-gray-900/80 backdrop-blur-lg rounded-lg overflow-hidden border border-gray-700/50">
-          {/* Terminal header */}
           <div className="flex items-center bg-gray-800/80 px-4 py-2 border-b border-gray-700/50">
             <div className="flex space-x-2">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -111,11 +132,10 @@ const TerminalAbout = () => {
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
             <div className="mx-auto text-xs text-gray-400 font-mono">
-              developer_profile.sh - Terminal
+              ali-alyasseen.sh - Terminal
             </div>
           </div>
           
-          {/* Terminal content */}
           <div 
             ref={terminalRef}
             className="p-4 font-mono text-sm h-96 overflow-y-auto text-left"
@@ -123,7 +143,6 @@ const TerminalAbout = () => {
           >
             {displayText.map((item, index) => renderContent(item, index))}
             
-            {/* Cursor */}
             {currentIndex < terminalContent.length && (
               <span className={`inline-block w-2 h-4 bg-gray-300 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>
             )}

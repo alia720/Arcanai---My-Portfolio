@@ -1,7 +1,8 @@
+// src/Components/WaterRipple.jsx
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const WaterRippleScreen = () => {
+const WaterRippleScreen = ({ theme }) => {
   const containerRef = useRef(null);
   const mousePos = useRef(new THREE.Vector3(-1, -1, 0));
   const frameCount = useRef(0);
@@ -13,15 +14,15 @@ const WaterRippleScreen = () => {
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
+    // Append the canvas and set z-index to be behind all content.
     containerRef.current.appendChild(renderer.domElement);
 
     // Simulation setup
     const rtOptions = {
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat
+      format: THREE.RGBAFormat,
     };
-    
     let simRT1 = new THREE.WebGLRenderTarget(width, height, rtOptions);
     let simRT2 = new THREE.WebGLRenderTarget(width, height, rtOptions);
     let currentRT = simRT1;
@@ -32,16 +33,16 @@ const WaterRippleScreen = () => {
     const simCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const simGeo = new THREE.PlaneGeometry(2, 2);
 
-    // Simulation shader uniforms
     const simUniforms = {
       u_texture: { value: currentRT.texture },
       u_resolution: { value: new THREE.Vector2(width, height) },
       u_aspectRatio: { value: width / height },
       u_mouse: { value: mousePos.current },
-      time: { value: 0 }
+      time: { value: 0 },
+      ringWidth: { value: 4.0 },
+      ringStrength: { value: 0.7 },
     };
 
-    // Simulation shader (adapted from your example)
     const simMaterial = new THREE.ShaderMaterial({
       uniforms: simUniforms,
       vertexShader: `
@@ -58,14 +59,11 @@ const WaterRippleScreen = () => {
         uniform float u_aspectRatio;
         uniform vec3 u_mouse;
         uniform float time;
-        
-        #define STRENGTH_COEFFICIENT 1.75
-        #define MODIFIER_COEFFICIENT 0.99
-        #define SAMPLE_STEP 5
-        #define SURFACE_DEPTH 12.0
-        #define SPECULAR_REFLECTION 12.0
-        
+        uniform float ringWidth;
+        uniform float ringStrength;
         varying vec2 vUv;
+        
+        #define SAMPLE_STEP 5
         
         float delta = 1.21;
         
@@ -86,7 +84,6 @@ const WaterRippleScreen = () => {
           float upw = texelFetch(u_texture, uv + ivec2(0, SAMPLE_STEP), 0).r;
           float dwn = texelFetch(u_texture, uv + ivec2(0, -SAMPLE_STEP), 0).r;
           
-          // Boundary conditions
           if(fragCoord.x <= 0.5) lft = rgt;
           if(fragCoord.x >= u_resolution.x - 0.5) rgt = lft;
           if(fragCoord.y <= 0.5) dwn = upw;
@@ -101,13 +98,18 @@ const WaterRippleScreen = () => {
           
           vec4 fragColor = vec4(force, velo, (rgt - lft) / 2.0, (upw - dwn) / 2.0);
           
-          if(dist < 10.0 * u_mouse.z) {
-            fragColor.x += 1.0 - dist / 10.0;
+          float radius = 15.0 * u_mouse.z;
+          float innerRadius = radius - ringWidth;
+          
+          if(u_mouse.z > 0.0) {
+            float ring = smoothstep(innerRadius - 1.0, innerRadius, dist) * 
+                         smoothstep(radius + 1.0, radius, dist);
+            fragColor.x += ring * ringStrength;
           }
           
           gl_FragColor = fragColor;
         }
-      `
+      `,
     });
 
     simScene.add(new THREE.Mesh(simGeo, simMaterial));
@@ -119,7 +121,13 @@ const WaterRippleScreen = () => {
     const finalMaterial = new THREE.ShaderMaterial({
       uniforms: {
         u_texture: { value: currentRT.texture },
-        u_resolution: { value: new THREE.Vector2(width, height) }
+        u_resolution: { value: new THREE.Vector2(width, height) },
+        u_colorMultiplier: { 
+          value: theme === "orange"
+            ? new THREE.Vector3(1.0, 0.5, 0.1) // warm/orange tones
+            : new THREE.Vector3(0.2, 0.5, 1.0) // blue tones
+        },
+        u_bloomReduction: { value: 0.7 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -132,22 +140,27 @@ const WaterRippleScreen = () => {
         precision highp float;
         uniform sampler2D u_texture;
         uniform vec2 u_resolution;
+        uniform vec3 u_colorMultiplier;
+        uniform float u_bloomReduction;
         varying vec2 vUv;
         
         void main() {
           vec4 data = texture2D(u_texture, vUv);
-          vec2 distortion = data.zw * 0.02;
-          vec3 color = vec3(0.3, 0.5, 1.0) * (0.5 + data.x * 2.0);
+          float intensity = pow(data.r * u_bloomReduction, 0.8);
+          vec3 color = u_colorMultiplier * (0.3 + intensity);
           gl_FragColor = vec4(color, 1.0);
         }
-      `
+      `,
     });
 
     finalScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), finalMaterial));
 
-    // Mouse handling
     const onMouseMove = (event) => {
       mousePos.current.set(event.clientX, event.clientY, 1);
+    };
+    
+    const onMouseDown = () => {
+      mousePos.current.z = 1;
     };
     
     const onMouseUp = () => {
@@ -155,38 +168,31 @@ const WaterRippleScreen = () => {
     };
 
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
 
-    // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
       frameCount.current++;
-      
-      // Update simulation
       simUniforms.u_texture.value = currentRT.texture;
       simUniforms.time.value = performance.now() / 1000;
-      
       renderer.setRenderTarget(nextRT);
       renderer.render(simScene, simCamera);
       renderer.setRenderTarget(null);
-      
-      // Swap render targets
       [currentRT, nextRT] = [nextRT, currentRT];
-      
-      // Update final render
       finalMaterial.uniforms.u_texture.value = currentRT.texture;
       renderer.render(finalScene, orthoCamera);
     };
     animate();
 
-    // Cleanup
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
       renderer.dispose();
       containerRef.current.removeChild(renderer.domElement);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <div
@@ -196,8 +202,11 @@ const WaterRippleScreen = () => {
         height: '100vh',
         position: 'fixed',
         top: 0,
-        left: 0
+        left: 0,
+        zIndex: -1, // This ensures the ripple background stays behind other components.
       }}
+      onMouseDown={() => (mousePos.current.z = 1)}
+      onMouseUp={() => (mousePos.current.z = 0)}
     />
   );
 };
