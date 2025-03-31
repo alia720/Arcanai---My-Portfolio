@@ -20,7 +20,7 @@ const WaterRippleCursor = () => {
         left: position.x,
         transform: 'translate(-50%, -50%)',
         pointerEvents: 'none',
-        zIndex: 1000, // Render above all other components
+        zIndex: 1000,
       }}
       className="w-6 h-6 rounded-full border border-white animate-[ripple_1.5s_ease-out_infinite]"
     />

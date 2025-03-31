@@ -21,7 +21,7 @@ const App = () => {
       <Navbar theme={theme} toggleTheme={toggleTheme} />
       <main className="space-y-20 lg:space-y-32">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<TerminalAbout />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/about" element={<TerminalAbout />} />

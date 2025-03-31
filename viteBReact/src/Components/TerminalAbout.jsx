@@ -1,3 +1,4 @@
+// src/Components/TerminalAbout.jsx
 import React, { useState, useEffect, useRef } from 'react';
 
 const TerminalAbout = () => {
@@ -20,7 +21,7 @@ const TerminalAbout = () => {
   "languages": ["C", "Assembly", "Python", "TypeScript", "Java", "JavaScript"],
   "frameworks": ["React", "Node.js", "Svelte", "PyQt6", "Tailwind CSS"],
   "systems": ["Linux", "Docker", "TCP Socket Programming", "Real-Time Systems"],
-  "databases": ["PostgreSQL", "FastDB"],
+  "databases": ["PostgreSQL", "SQL", "FastDB"],
   "tools": ["Git/GitHub", "Make", "REST API Development", "Web Scraping"]
 }` },
     { type: 'command', text: 'cat experience.txt' },
@@ -50,10 +51,11 @@ const TerminalAbout = () => {
         setDisplayText(prev => [...prev, terminalContent[currentIndex]]);
         setCurrentIndex(prevIndex => prevIndex + 1);
         
+        // Scroll to bottom
         if (terminalRef.current) {
           terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
         }
-      }, terminalContent[currentIndex].type === 'command' ? 2200 : 1600);
+      }, terminalContent[currentIndex].type === 'command' ? 1800 : 1200);
       
       return () => clearTimeout(timeout);
     }
@@ -177,9 +179,7 @@ const TerminalAbout = () => {
             
             {displayText.map((item, index) => renderContent(item, index))}
             
-            {currentIndex < terminalContent.length && (
-              <span className={`inline-block w-2 h-4 bg-cyan-300 ml-1 ${showCursor ? 'opacity-80' : 'opacity-0'} shadow-[0_0_5px_rgba(45,212,191,0.8)]`}></span>
-            )}
+            {/* Removed the blinking cursor span */}
           </div>
         </div>
       </div>

@@ -57,8 +57,8 @@ const Navbar = ({ theme, toggleTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navItems = [
     { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Projects', path: '/projects' },
     { label: 'About', path: '/about' },
+    { label: 'Projects', path: '/projects' },
   ];
 
   return (
@@ -95,6 +95,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                 </li>
               ))}
             </ul>
+            <div className="w-12 h-12"></div> 
           </div>
           <button 
             onClick={() => setIsOpen(!isOpen)}

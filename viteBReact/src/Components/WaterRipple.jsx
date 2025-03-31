@@ -1,20 +1,71 @@
-// src/Components/WaterRipple.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 const WaterRippleScreen = ({ theme }) => {
   const containerRef = useRef(null);
   const mousePos = useRef(new THREE.Vector3(-1, -1, 0));
-  const frameCount = useRef(0);
+  const [lowPerformance, setLowPerformance] = useState(false);
+  const lowPerformanceRef = useRef(lowPerformance);
+  const fpsBuffer = useRef([]);
+  const fpsBufferSize = 10;
+  const rendererRef = useRef(null);
+
+  // Fallback style when performance is low
+  const fallbackStyle = {
+    background: theme === "orange" 
+      ? 'linear-gradient(135deg, rgb(110, 73, 4), rgb(240, 86, 30))'
+      : 'linear-gradient(135deg, #1E90FF, #00008B)',
+    width: '100vw',
+    height: '100vh',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    zIndex: -1
+  };
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    lowPerformanceRef.current = lowPerformance;
+  }, [lowPerformance]);
 
   useEffect(() => {
+    if (lowPerformance) return;
+
+    // Performance benchmark
+    const runPerformanceCheck = () => {
+      const tempCanvas = document.createElement("canvas");
+      const tempGl = tempCanvas.getContext("webgl") || tempCanvas.getContext("experimental-webgl");
+      if (!tempGl) {
+        setLowPerformance(true);
+        return true;
+      }
+
+      const iterations = 100;
+      const start = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        tempGl.clear(tempGl.COLOR_BUFFER_BIT);
+      }
+      const avgTimePerFrame = (performance.now() - start) / iterations;
+      tempCanvas.remove();
+      
+      if (avgTimePerFrame > 1.0) {
+        setLowPerformance(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (runPerformanceCheck()) return;
+
+    // Three.js setup
     const width = window.innerWidth;
     const height = window.innerHeight;
-
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      powerPreference: "high-performance"
+    });
     renderer.setSize(width, height);
-    // Append the canvas and set z-index to be behind all content.
+    rendererRef.current = renderer;
     containerRef.current.appendChild(renderer.domElement);
 
     // Simulation setup
@@ -124,8 +175,8 @@ const WaterRippleScreen = ({ theme }) => {
         u_resolution: { value: new THREE.Vector2(width, height) },
         u_colorMultiplier: { 
           value: theme === "orange"
-            ? new THREE.Vector3(1.0, 0.5, 0.1) // warm/orange tones
-            : new THREE.Vector3(0.2, 0.5, 1.0) // blue tones
+            ? new THREE.Vector3(1.0, 0.5, 0.1)
+            : new THREE.Vector3(0.2, 0.5, 1.0)
         },
         u_bloomReduction: { value: 0.7 },
       },
@@ -155,6 +206,7 @@ const WaterRippleScreen = ({ theme }) => {
 
     finalScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), finalMaterial));
 
+    // Event handlers
     const onMouseMove = (event) => {
       mousePos.current.set(event.clientX, event.clientY, 1);
     };
@@ -171,42 +223,94 @@ const WaterRippleScreen = ({ theme }) => {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
 
+    // Animation loop
+    let lastFrameTime = performance.now();
+    let animationFrameId = null;
+    let resolutionScale = 1.0;
+    
     const animate = () => {
-      requestAnimationFrame(animate);
-      frameCount.current++;
+      if (lowPerformanceRef.current) {
+        cleanup();
+        return;
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const deltaTime = now - lastFrameTime;
+      lastFrameTime = now;
+      const fps = 1000 / deltaTime;
+
+      // Update FPS buffer
+      fpsBuffer.current.push(fps);
+      if (fpsBuffer.current.length > fpsBufferSize) fpsBuffer.current.shift();
+      
+      // Check average FPS
+      if (fpsBuffer.current.length === fpsBufferSize) {
+        const avgFPS = fpsBuffer.current.reduce((a, b) => a + b, 0) / fpsBufferSize;
+        if (avgFPS < 30) {
+          setLowPerformance(true);
+          return;
+        }
+      }
+
+      // Dynamic resolution scaling
+      if (fps < 30 && resolutionScale > 0.5) {
+        resolutionScale = Math.max(0.5, resolutionScale - 0.05);
+      } else if (fps > 45 && resolutionScale < 1.0) {
+        resolutionScale = Math.min(1.0, resolutionScale + 0.05);
+      }
+
+      const newWidth = Math.floor(window.innerWidth * resolutionScale);
+      const newHeight = Math.floor(window.innerHeight * resolutionScale);
+      
+      simUniforms.u_resolution.value.set(newWidth, newHeight);
+      finalMaterial.uniforms.u_resolution.value.set(newWidth, newHeight);
+      renderer.setSize(newWidth, newHeight);
+    
       simUniforms.u_texture.value = currentRT.texture;
-      simUniforms.time.value = performance.now() / 1000;
+      simUniforms.time.value = now / 1000;
+    
       renderer.setRenderTarget(nextRT);
       renderer.render(simScene, simCamera);
       renderer.setRenderTarget(null);
       [currentRT, nextRT] = [nextRT, currentRT];
+    
       finalMaterial.uniforms.u_texture.value = currentRT.texture;
       renderer.render(finalScene, orthoCamera);
     };
-    animate();
 
-    return () => {
+    const cleanup = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
-      renderer.dispose();
-      containerRef.current.removeChild(renderer.domElement);
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+        if (containerRef.current && containerRef.current.contains(rendererRef.current.domElement)) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
+        }
+      }
     };
-  }, [theme]);
+
+    animate();
+
+    return cleanup;
+  }, [theme, lowPerformance]);
 
   return (
     <div
       ref={containerRef}
-      style={{
+      style={lowPerformance ? fallbackStyle : {
         width: '100vw',
         height: '100vh',
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex: -1, // This ensures the ripple background stays behind other components.
+        zIndex: -1
       }}
-      onMouseDown={() => (mousePos.current.z = 1)}
-      onMouseUp={() => (mousePos.current.z = 0)}
     />
   );
 };
