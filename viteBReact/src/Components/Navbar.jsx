@@ -1,14 +1,14 @@
-// src/Components/Navbar.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const AnimatedEye = ({ onClick, theme }) => {
   const eyeRef = useRef(null);
   const pupilRef = useRef(null);
+  const [isBlinking, setIsBlinking] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (eyeRef.current && pupilRef.current) {
+      if (eyeRef.current && pupilRef.current && !isBlinking) {
         const eyeRect = eyeRef.current.getBoundingClientRect();
         const eyeCenterX = eyeRect.left + eyeRect.width / 2;
         const eyeCenterY = eyeRect.top + eyeRect.height / 2;
@@ -23,32 +23,49 @@ const AnimatedEye = ({ onClick, theme }) => {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isBlinking]);
+
+  const handleClick = () => {
+    setIsBlinking(true);
+    
+    // Trigger the theme toggle passed from parent
+    onClick();
+    
+    // Reset blinking state after animation completes
+    setTimeout(() => {
+      setIsBlinking(false);
+    }, 400); // Duration slightly longer than the animation
+  };
 
   return (
     <div 
       ref={eyeRef}
-      onClick={onClick} // Toggle theme when clicking the eye
+      onClick={handleClick}
       className={`relative h-12 w-12 rounded-full border-2 ${
         theme === "orange" ? "border-orange-400/30" : "border-purple-400/30"
       } backdrop-blur-xl overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300 ${
         theme === "orange"
           ? "bg-gradient-to-br from-orange-500 to-orange-700"
           : "bg-gradient-to-br from-purple-900/40 to-cyan-900/30"
-      }`}
+      } ${isBlinking ? "animate-blink" : ""}`}
     >
       <div className="absolute inset-0 rounded-full">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(202,234,245,0.2)_0%,_transparent_60%)] animate-spin-slow opacity-50" />
       </div>
       <div
         ref={pupilRef}
-        className="absolute top-1/2 left-1/2 w-4 h-4 bg-black rounded-full transition-all duration-200 ease-out -translate-x-1/2 -translate-y-1/2 border border-cyan-400/30"
+        className={`absolute top-1/2 left-1/2 w-4 h-4 bg-black rounded-full transition-all duration-200 ease-out -translate-x-1/2 -translate-y-1/2 border border-cyan-400/30 ${
+          isBlinking ? "animate-pupil-blink" : ""
+        }`}
       >
         <div className="absolute top-1 left-1 w-2 h-2 bg-cyan-300 rounded-full shadow-[0_0_6px_2px_rgba(34,211,238,0.3)]" />
         <div className="absolute bottom-1 right-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_4px_1px_rgba(168,85,247,0.2)]" />
       </div>
       <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,_transparent_0px,_transparent_5px,_rgba(168,85,247,0.1)_5px,_rgba(168,85,247,0.1)_6px)] opacity-30 mix-blend-overlay" />
       <div className="absolute inset-0 rounded-full border border-cyan-400/20 pointer-events-none shadow-[inset_0_0_12px_2px_rgba(34,211,238,0.15)]" />
+      {isBlinking && (
+        <div className="absolute inset-0 bg-black animate-eyelid" />
+      )}
     </div>
   );
 };
@@ -151,11 +168,26 @@ const Navbar = ({ theme, toggleTheme }) => {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes blink {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.1); }
+        }
+        @keyframes eyelid {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
+        }
+        @keyframes pupil-blink {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(0.6); }
+        }
         .animate-float { animation: float 1.5s infinite linear; }
         .animate-float-delay { animation: float 1.5s infinite linear 0.5s; }
         .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
         .animate-pulse-shadow { animation: pulse-shadow 2s infinite; }
         .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+        .animate-blink { animation: blink 300ms ease-in-out; }
+        .animate-eyelid { animation: eyelid 300ms ease-in-out; }
+        .animate-pupil-blink { animation: pupil-blink 300ms ease-in-out; }
       `}</style>
     </>
   );
