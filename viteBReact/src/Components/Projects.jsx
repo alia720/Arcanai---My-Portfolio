@@ -125,7 +125,7 @@ const Projects = () => {
       id: 1,
       title: "EggLoL",
       description: "A Discord bot that delivers comprehensive League of Legends champion information and manages user profiles.",
-      techStack: ["Python", "PostgreSQL", "BeautifulSoup4", "discord.py"],
+      techStack: ["Python", "PostgreSQL", "BeautifulSoup4", "discord.py", "CRUD"],
       image: "/Images/Egglol.png",
       demoLink: null,
       githubLink: "https://github.com/ALiA720/EGGLOL"
@@ -153,7 +153,7 @@ const Projects = () => {
       id: 4,
       title: "Self-Checkout Station Control Software",
       description: "A comprehensive GUI-based self-checkout system developed in Java as part of a 20-member team.",
-      techStack: ["Java", "GUI Development", "Team Collaboration"],
+      techStack: ["Java", "GUI Development", "Team Collaboration", "Case testing"],
       image: "/Images/SENG300.gif",
       demoLink: null,
       githubLink: "https://github.com/JackGraver/SENG300-Project-Iteration3"
