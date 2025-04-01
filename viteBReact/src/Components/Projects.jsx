@@ -123,81 +123,60 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
-      title: "Manjots Neural Interface",
-      description: "A responsive web application for seamless interaction with Manjots networks.",
-      techStack: ["React", "TailwindCSS", "WebGL"],
-      image: "/api/placeholder/400/320",
-      isGif: true,
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "EggLoL",
+      description: "A Discord bot that delivers comprehensive League of Legends champion information and manages user profiles.",
+      techStack: ["Python", "PostgreSQL", "BeautifulSoup4", "discord.py"],
+      image: "/Images/Egglol.png",
+      demoLink: null,
+      githubLink: "https://github.com/ALiA720/EGGLOL"
     },
     {
       id: 2,
-      title: "Quantum Visualization",
-      description: "Interactive visualization platform for #1 quantum computing simulations.",
-      techStack: ["Three.js", "Node.js", "Test.js"],
-      image: "/api/placeholder/400/320",
-      isGif: true,
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "RMP-Extension",
+      description: "A Chrome extension that seamlessly integrates professor data from the University of Calgary website with ratings from RateMyProfessors.",
+      techStack: ["Node.js", "Chrome API", "Puppeteer", "HTML/CSS/JS"],
+      image: "/Images/ProfRating.png",
+      demoLink: null,
+      githubLink: "https://github.com/ALiA720/RMP-EXTENSION"
     },
     {
       id: 3,
-      title: "EggLoL",
-      description: "League of Legos discord bot shenanigans",
-      techStack: ["discord.py", "Python", "Docker"],
-      image: "/api/placeholder/400/320",
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "Spout",
+      description: "An integrated ecosystem for remote sprinkler management that optimizes water usage by enabling remote activation, detailed water tracking, and weather-based watering tips.",
+      techStack: ["Python", "Svelte", "PyQt6", "TCP Sockets"],
+      image: "/Images/Spout.gif",
+      isGif: true,
+      demoLink: null,
+      githubLink: "https://github.com/MAiTRA10/SPOUT"
     },
     {
       id: 4,
-      title: "Nexus Portal",
-      description: "A gateway connecting disparate digital environments through a unified protocol.",
-      techStack: ["Go", "gRPC", "PostgreSQL"],
-      image: "/api/placeholder/400/320",
-      isGif: true,
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "Self-Checkout Station Control Software",
+      description: "A comprehensive GUI-based self-checkout system developed in Java as part of a 20-member team.",
+      techStack: ["Java", "GUI Development", "Team Collaboration"],
+      image: "/Images/SENG300.gif",
+      demoLink: null,
+      githubLink: "https://github.com/JackGraver/SENG300-Project-Iteration3"
     },
     {
       id: 5,
-      title: "Synaptic Relay",
-      description: "Real-time data processing pipeline for neural network training and deployment.",
-      techStack: ["Python", "TensorFlow", "Kafka"],
-      image: "/api/placeholder/400/320",
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "SNESS: A Bare-Metal Snake Game",
+      description: "A custom Snake Game implementation at the system level for the Raspberry Pi 4 which uses a custom built SNES driver by interfacing with GPIO pins.",
+      techStack: ["C", "Assembly", "Raspberry Pi", "Bare-Metal Programming"],
+      image: "/Images/SNES.png",
+      demoLink: null,
+      githubLink: "https://github.com/alia720/Rpi4-Game"
     },
     {
       id: 6,
-      title: "Phantom Cyberdeck",
-      description: "Virtual reality interface for immersive coding and data visualization.",
-      techStack: ["Unity", "C#", "WebXR"],
-      image: "/api/placeholder/400/320",
-      isGif: true,
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
-    },
-    {
-      id: 7,
-      title: "Cascade Protocol",
-      description: "Distributed consensus algorithm for secure multi-party computation.",
-      techStack: ["Rust", "WebAssembly", "Solidity"],
-      image: "/api/placeholder/400/320",
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
-    },
-    {
-      id: 8,
-      title: "Echo Chamber",
-      description: "Audio processing framework for spatial sound design and synthesis.",
-      techStack: ["C++", "JUCE", "WebAudio"],
-      image: "/api/placeholder/400/320",
-      isGif: true,
-      demoLink: "https://example.com",
-      githubLink: "https://github.com/example"
+      title: "CustomerReach (WIP)",
+      description: "An innovative web application that streamlines the discovery of potential customers through business description analysis and targeted criteria matching.",
+      techStack: ["FastDB", "React + Vite", "RabbitMQ", "NLPs", "TailwindCSS", "TypeScript"],
+      image: null,
+      demoLink: null,
+      githubLink: "https://github.com/AbdiRazak140/CustomerReach"
     }
+    
   ];
 
   React.useEffect(() => {
