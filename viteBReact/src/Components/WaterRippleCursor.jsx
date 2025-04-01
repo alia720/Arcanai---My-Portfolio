@@ -1,4 +1,3 @@
-// src/Components/WaterRippleCursor.jsx
 import React, { useEffect, useState } from 'react';
 
 const WaterRippleCursor = () => {

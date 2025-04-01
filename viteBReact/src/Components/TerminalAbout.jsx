@@ -1,16 +1,28 @@
-// src/Components/TerminalAbout.jsx
 import React, { useState, useEffect, useRef } from 'react';
 
 const TerminalAbout = () => {
+  const savedState = JSON.parse(localStorage.getItem('terminalState'));
+  
   const [inputValue, setInputValue] = useState('');
-  const [displayedContent, setDisplayedContent] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
-  const [commandHistory, setCommandHistory] = useState([]);
+  const [displayedContent, setDisplayedContent] = useState(savedState?.displayedContent || []);
+  const [currentIndex, setCurrentIndex] = useState(savedState?.currentIndex || 0);
+  const [isTypingComplete, setIsTypingComplete] = useState(savedState?.isTypingComplete || false);
+  const [commandHistory, setCommandHistory] = useState(savedState?.commandHistory || []);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [currentTheme, setCurrentTheme] = useState('cyberpunk');
+  const [currentTheme, setCurrentTheme] = useState(savedState?.currentTheme || 'cyberpunk');
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const stateToSave = {
+      displayedContent,
+      currentIndex,
+      isTypingComplete,
+      commandHistory,
+      currentTheme
+    };
+    localStorage.setItem('terminalState', JSON.stringify(stateToSave));
+  }, [displayedContent, currentIndex, isTypingComplete, commandHistory, currentTheme]);
 
   const themes = {
     cyberpunk: {
@@ -268,8 +280,13 @@ const TerminalAbout = () => {
       { type: 'response', text: 'Current user:' },
       { type: 'info', text: 'username: ali' },
       { type: 'info', text: 'name: Ali Al Yasseen' },
-      { type: 'info', text: 'role: Computer Scientist' }
+      { type: 'info', text: 'role: Computer Scientist' },
+      { 
+        type: 'info', 
+        text: "I am Ali Al Yasseen, a Computer Scientist in training at the University of Calgary (B.Sc. in Computer Science, expected 2026). Passionate about software development, I excel in languages like C, Python, and JavaScript, and have hands-on experience with frameworks and tools such as React, Node.js, and Docker. I've led projects ranging from Discord bots to Chrome extensions, and even taught Python to young learners. Constantly innovating, I thrive on creating impactful solutions and pushing technological boundaries." 
+      }
     ],
+
     'echo': (args) => [
       { type: 'response', text: args.join(' ') }
     ],
@@ -284,7 +301,7 @@ const TerminalAbout = () => {
         setDisplayedContent(prev => [...prev, initialContent[currentIndex]]);
         setCurrentIndex(prev => prev + 1);
         terminalRef.current?.scrollTo(0, terminalRef.current.scrollHeight);
-      }, initialContent[currentIndex].type === 'command' ? 1800 : 1200);
+      }, initialContent[currentIndex].type === 'command' ? 1500 : 1000);
       
       return () => clearTimeout(timeout);
     } else {

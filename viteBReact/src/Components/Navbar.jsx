@@ -27,14 +27,10 @@ const AnimatedEye = ({ onClick, theme }) => {
 
   const handleClick = () => {
     setIsBlinking(true);
-    
-    // Trigger the theme toggle passed from parent
     onClick();
-    
-    // Reset blinking state after animation completes
     setTimeout(() => {
       setIsBlinking(false);
-    }, 400); // Duration slightly longer than the animation
+    }, 400);
   };
 
   return (
@@ -44,10 +40,8 @@ const AnimatedEye = ({ onClick, theme }) => {
       className={`relative h-12 w-12 rounded-full border-2 ${
         theme === "orange" ? "border-orange-400/30" : "border-purple-400/30"
       } backdrop-blur-xl overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300 ${
-        theme === "orange"
-          ? "bg-gradient-to-br from-orange-500 to-orange-700"
-          : "bg-gradient-to-br from-purple-900/40 to-cyan-900/30"
-      } ${isBlinking ? "animate-blink" : ""}`}
+        isBlinking ? "animate-blink" : ""
+      }`}
     >
       <div className="absolute inset-0 rounded-full">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(202,234,245,0.2)_0%,_transparent_60%)] animate-spin-slow opacity-50" />
@@ -82,13 +76,16 @@ const Navbar = ({ theme, toggleTheme }) => {
     <>
       <nav className="w-full fixed top-0 left-0 right-0 z-50">
         <div className="h-[2px] w-full bg-gradient-to-r from-blue-400/0 via-cyan-300/80 to-blue-400/0 animate-pulse" />
-        <div className={`flex justify-between items-center py-4 px-6 backdrop-blur-xl ${
+        <div className={`flex items-center py-4 px-6 backdrop-blur-xl ${
           theme === "orange"
             ? "bg-gradient-to-b from-orange-900/30 to-yellow-900/20"
             : "bg-gradient-to-b from-blue-900/30 to-indigo-900/20"
         } border-b border-sky-500/20`}>
-          <AnimatedEye onClick={toggleTheme} theme={theme} />
-          <div className="hidden lg:flex w-full justify-center">
+          <div className="flex-shrink-0">
+            <AnimatedEye onClick={toggleTheme} theme={theme} />
+          </div>
+
+          <div className="hidden lg:flex flex-1 justify-center">
             <ul className="flex gap-x-12 font-light tracking-widest text-lg">
               {navItems.map((item) => (
                 <li key={item.path} className="relative py-2 group">
@@ -112,8 +109,10 @@ const Navbar = ({ theme, toggleTheme }) => {
                 </li>
               ))}
             </ul>
-            <div className="w-12 h-12"></div> 
           </div>
+
+          <div className="hidden lg:block w-12 h-12" />
+
           <button 
             onClick={() => setIsOpen(!isOpen)}
             className="lg:hidden p-2 rounded-lg backdrop-blur-sm bg-cyan-900/20 hover:bg-cyan-900/30 transition-colors"
@@ -125,7 +124,7 @@ const Navbar = ({ theme, toggleTheme }) => {
             </div>
           </button>
         </div>
-        {/* Mobile Menu */}
+
         <div className={`lg:hidden ${
           theme === "orange"
             ? "bg-gradient-to-b from-orange-900/60 to-yellow-900/40"

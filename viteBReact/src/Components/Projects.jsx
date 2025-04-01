@@ -5,6 +5,7 @@ const ProjectCard = ({
   description, 
   techStack = [], 
   image, 
+  isGif = false,
   demoLink, 
   githubLink,
   projectId
@@ -17,22 +18,26 @@ const ProjectCard = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background grid effect */}
       <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,_transparent_0px,_transparent_10px,_rgba(34,211,238,0.03)_10px,_rgba(34,211,238,0.03)_11px)] opacity-20" />
       <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,_transparent_0px,_transparent_10px,_rgba(34,211,238,0.03)_10px,_rgba(34,211,238,0.03)_11px)] opacity-20" />
       
-      {/* Project ID badge */}
       <div className="absolute top-3 left-3 bg-blue-900/70 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-cyan-400 border border-cyan-900/50 z-10">
         PROJECT#{projectId.toString().padStart(3, '0')}
       </div>
       
-      {/* Image section */}
+      {isGif && (
+        <div className="absolute top-3 right-3 bg-purple-900/70 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-purple-300 border border-purple-900/50 z-10 flex items-center">
+          <span className="h-2 w-2 bg-purple-400 rounded-full mr-1 animate-pulse"></span>
+          GIF
+        </div>
+      )}
+      
       <div className="h-48 relative overflow-hidden">
         {image ? (
           <img 
             src={image} 
             alt={title} 
-            className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
+            className={`w-full h-full object-cover transition-transform duration-700 ease-in-out ${isHovered ? 'scale-110' : ''}`}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-800/30 to-purple-900/30 flex items-center justify-center">
@@ -40,10 +45,8 @@ const ProjectCard = ({
           </div>
         )}
         
-        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent opacity-80" />
         
-        {/* Animated scan line */}
         <div 
           className="absolute inset-x-0 h-[2px] bg-cyan-400/70 z-10 pointer-events-none"
           style={{ 
@@ -54,7 +57,6 @@ const ProjectCard = ({
         />
       </div>
       
-      {/* Content */}
       <div className="p-5 relative">
         <h3 className="text-xl font-light mb-2 tracking-wider bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
           {title}
@@ -64,7 +66,6 @@ const ProjectCard = ({
           {description}
         </p>
         
-        {/* Tech stack tags */}
         <div className="flex flex-wrap gap-2 mb-5">
           {techStack.map((tech, index) => (
             <span 
@@ -76,7 +77,6 @@ const ProjectCard = ({
           ))}
         </div>
         
-        {/* Action buttons */}
         <div className="flex gap-4">
           {demoLink && (
             <a 
@@ -110,7 +110,6 @@ const ProjectCard = ({
           )}
         </div>
         
-        {/* Decorative corner */}
         <div className="absolute top-0 right-0 w-10 h-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-[2px] h-5 bg-cyan-500/50"></div>
           <div className="absolute top-0 right-0 h-[2px] w-5 bg-cyan-500/50"></div>
@@ -120,7 +119,6 @@ const ProjectCard = ({
   );
 };
 
-// Projects Container Component
 const Projects = () => {
   const projects = [
     {
@@ -129,15 +127,17 @@ const Projects = () => {
       description: "A responsive web application for seamless interaction with Manjots networks.",
       techStack: ["React", "TailwindCSS", "WebGL"],
       image: "/api/placeholder/400/320",
+      isGif: true,
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
     },
     {
       id: 2,
-      title: "Idk something something Visualization",
+      title: "Quantum Visualization",
       description: "Interactive visualization platform for #1 quantum computing simulations.",
       techStack: ["Three.js", "Node.js", "Test.js"],
       image: "/api/placeholder/400/320",
+      isGif: true,
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
     },
@@ -149,36 +149,109 @@ const Projects = () => {
       image: "/api/placeholder/400/320",
       demoLink: "https://example.com",
       githubLink: "https://github.com/example"
+    },
+    {
+      id: 4,
+      title: "Nexus Portal",
+      description: "A gateway connecting disparate digital environments through a unified protocol.",
+      techStack: ["Go", "gRPC", "PostgreSQL"],
+      image: "/api/placeholder/400/320",
+      isGif: true,
+      demoLink: "https://example.com",
+      githubLink: "https://github.com/example"
+    },
+    {
+      id: 5,
+      title: "Synaptic Relay",
+      description: "Real-time data processing pipeline for neural network training and deployment.",
+      techStack: ["Python", "TensorFlow", "Kafka"],
+      image: "/api/placeholder/400/320",
+      demoLink: "https://example.com",
+      githubLink: "https://github.com/example"
+    },
+    {
+      id: 6,
+      title: "Phantom Cyberdeck",
+      description: "Virtual reality interface for immersive coding and data visualization.",
+      techStack: ["Unity", "C#", "WebXR"],
+      image: "/api/placeholder/400/320",
+      isGif: true,
+      demoLink: "https://example.com",
+      githubLink: "https://github.com/example"
+    },
+    {
+      id: 7,
+      title: "Cascade Protocol",
+      description: "Distributed consensus algorithm for secure multi-party computation.",
+      techStack: ["Rust", "WebAssembly", "Solidity"],
+      image: "/api/placeholder/400/320",
+      demoLink: "https://example.com",
+      githubLink: "https://github.com/example"
+    },
+    {
+      id: 8,
+      title: "Echo Chamber",
+      description: "Audio processing framework for spatial sound design and synthesis.",
+      techStack: ["C++", "JUCE", "WebAudio"],
+      image: "/api/placeholder/400/320",
+      isGif: true,
+      demoLink: "https://example.com",
+      githubLink: "https://github.com/example"
     }
   ];
 
+  React.useEffect(() => {
+    document.body.style.overflow = 'auto';
+    document.body.style.height = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   return (
-    <section className="py-16 px-6 relative z-10">
-      <div className="h-[2px] w-full max-w-md mx-auto mb-8 bg-gradient-to-r from-blue-400/0 via-cyan-300/80 to-blue-400/0 animate-pulse" />
+    <>
+      <style jsx global>{`
+        html, body {
+          overflow-y: auto !important;
+          height: auto !important;
+        }
+      `}</style>
       
-      <h1 className="text-3xl font-light mb-1 tracking-wider text-center bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-        PROJECT DATABANK
-      </h1>
-      
-      <p className="text-center text-gray-400 font-light tracking-wide mb-10">
-        The Archived network solutions and virtual constructs
-      </p>
-      
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {projects.map(project => (
-          <ProjectCard 
-            key={project.id}
-            title={project.title}
-            description={project.description}
-            techStack={project.techStack}
-            image={project.image}
-            demoLink={project.demoLink}
-            githubLink={project.githubLink}
-            projectId={project.id}
-          />
-        ))}
+      <div className="relative min-h-screen">
+        <section className="px-6 relative z-10">
+          <div className="h-[2px] w-full max-w-md mx-auto mb-6 bg-gradient-to-r from-blue-400/0 via-cyan-300/80 to-blue-400/0 animate-pulse" />
+          
+          <h1 className="text-3xl font-light mb-2 tracking-wider text-center bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+            PROJECT DATABANK
+          </h1>
+          
+          <p className="text-center text-gray-400 font-light tracking-wide mb-8">
+            The Archived network solutions and virtual constructs
+          </p>
+          
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+            {projects.map(project => (
+              <ProjectCard 
+                key={project.id}
+                title={project.title}
+                description={project.description}
+                techStack={project.techStack}
+                image={project.image}
+                isGif={project.isGif}
+                demoLink={project.demoLink}
+                githubLink={project.githubLink}
+                projectId={project.id}
+              />
+            ))}
+          </div>
+        </section>
       </div>
-    </section>
+    </>
   );
 };
 
