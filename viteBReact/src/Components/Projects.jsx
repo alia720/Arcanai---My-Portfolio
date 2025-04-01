@@ -155,6 +155,7 @@ const Projects = () => {
       description: "A comprehensive GUI-based self-checkout system developed in Java as part of a 20-member team.",
       techStack: ["Java", "GUI Development", "Team Collaboration", "Case testing"],
       image: "/Images/SENG300.gif",
+      isGif: true,
       demoLink: null,
       githubLink: "https://github.com/JackGraver/SENG300-Project-Iteration3"
     },
@@ -169,6 +170,16 @@ const Projects = () => {
     },
     {
       id: 6,
+      title: "Cat Chat: Feline-Themed Chat Application",
+      description: "A playful chat application featuring a multi-threaded server that handles multiple client connections and a Tkinter GUI client with cat-themed elements, emojis, and special commands.",
+      techStack: ["Python", "Tkinter", "Socket Programming", "Multi-threading", "GUI Development"],
+      image: "/Images/CatChat.gif",
+      isGif: true,
+      demoLink: null,
+      githubLink: "https://github.com/alia720/CatChat"
+    },
+    {
+      id: 7,
       title: "CustomerReach (WIP)",
       description: "An innovative web application that streamlines the discovery of potential customers through business description analysis and targeted criteria matching.",
       techStack: ["FastDB", "React + Vite", "RabbitMQ", "NLPs", "TailwindCSS", "TypeScript"],
