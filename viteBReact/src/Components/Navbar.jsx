@@ -67,9 +67,9 @@ const AnimatedEye = ({ onClick, theme }) => {
 const Navbar = ({ theme, toggleTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navItems = [
-    { label: 'Dashboard', path: '/dashboard' },
     { label: 'About', path: '/about' },
     { label: 'Projects', path: '/projects' },
+    { label: 'Analytics', path: '/dashboard' },
   ];
 
   return (
