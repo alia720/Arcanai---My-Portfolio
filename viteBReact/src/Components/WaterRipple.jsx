@@ -254,13 +254,6 @@ const WaterRippleScreen = ({ theme }) => {
         }
       }
 
-      // Dynamic resolution scaling
-      if (fps < 30 && resolutionScale > 0.5) {
-        resolutionScale = Math.max(0.5, resolutionScale - 0.05);
-      } else if (fps > 45 && resolutionScale < 1.0) {
-        resolutionScale = Math.min(1.0, resolutionScale + 0.05);
-      }
-
       const newWidth = Math.floor(window.innerWidth * resolutionScale);
       const newHeight = Math.floor(window.innerHeight * resolutionScale);
       
