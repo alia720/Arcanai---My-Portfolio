@@ -86,13 +86,13 @@ const Navbar = ({ theme, toggleTheme }) => {
           </div>
 
           <div className="hidden lg:flex flex-1 justify-center">
-            <ul className="flex gap-x-12 font-light tracking-widest text-lg">
+            <ul className="flex gap-x-12 font-light tracking-widest text-lg select-none">
               {navItems.map((item) => (
                 <li key={item.path} className="relative py-2 group">
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `inline-block relative no-underline transform transition-all duration-300 ${
+                      `inline-block relative no-underline transform transition-all duration-300 select-none ${
                         isActive ? "text-cyan-300" : "text-white"
                       } group-hover:-translate-y-0.5`
                     }
@@ -132,12 +132,12 @@ const Navbar = ({ theme, toggleTheme }) => {
         } backdrop-blur-lg overflow-hidden transition-all duration-500 ease-out-quad ${
           isOpen ? "max-h-96 py-4 opacity-100" : "max-h-0 py-0 opacity-0"
         }`}>
-          <div className="flex flex-col gap-y-8 items-center py-4">
+          <div className="flex flex-col gap-y-8 items-center py-4 select-none">
             {navItems.map((item, index) => (
               <NavLink 
                 key={item.path}
                 to={item.path}
-                className="text-lg font-light tracking-wider opacity-0 animate-fade-in"
+                className="text-lg font-light tracking-wider opacity-0 animate-fade-in select-none"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <span className="bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">

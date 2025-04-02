@@ -9,6 +9,13 @@ const WaterRippleScreen = ({ theme }) => {
   const fpsBuffer = useRef([]);
   const fpsBufferSize = 10;
   const rendererRef = useRef(null);
+  const rtOptionsRef = useRef(null);
+  const simRT1Ref = useRef(null);
+  const simRT2Ref = useRef(null);
+  const currentRTRef = useRef(null);
+  const nextRTRef = useRef(null);
+  const simUniformsRef = useRef(null);
+  const finalMaterialRef = useRef(null);
 
   // Fallback style when performance is low
   const fallbackStyle = {
@@ -74,10 +81,17 @@ const WaterRippleScreen = ({ theme }) => {
       magFilter: THREE.LinearFilter,
       format: THREE.RGBAFormat,
     };
+    rtOptionsRef.current = rtOptions;
+    
     let simRT1 = new THREE.WebGLRenderTarget(width, height, rtOptions);
     let simRT2 = new THREE.WebGLRenderTarget(width, height, rtOptions);
+    simRT1Ref.current = simRT1;
+    simRT2Ref.current = simRT2;
+    
     let currentRT = simRT1;
     let nextRT = simRT2;
+    currentRTRef.current = currentRT;
+    nextRTRef.current = nextRT;
 
     // Simulation scene
     const simScene = new THREE.Scene();
@@ -93,6 +107,7 @@ const WaterRippleScreen = ({ theme }) => {
       ringWidth: { value: 4.0 },
       ringStrength: { value: 0.7 },
     };
+    simUniformsRef.current = simUniforms;
 
     const simMaterial = new THREE.ShaderMaterial({
       uniforms: simUniforms,
@@ -203,6 +218,7 @@ const WaterRippleScreen = ({ theme }) => {
         }
       `,
     });
+    finalMaterialRef.current = finalMaterial;
 
     finalScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), finalMaterial));
 
@@ -219,9 +235,56 @@ const WaterRippleScreen = ({ theme }) => {
       mousePos.current.z = 0;
     };
 
+    const handleResize = () => {
+      if (lowPerformanceRef.current) return;
+      
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      // Update renderer size
+      if (rendererRef.current) {
+        rendererRef.current.setSize(width, height);
+      }
+      
+      // Update uniforms
+      if (simUniformsRef.current) {
+        simUniformsRef.current.u_resolution.value.set(width, height);
+        simUniformsRef.current.u_aspectRatio.value = width / height;
+      }
+      
+      if (finalMaterialRef.current) {
+        finalMaterialRef.current.uniforms.u_resolution.value.set(width, height);
+      }
+      
+      // Recreate render targets with new size
+      if (rtOptionsRef.current) {
+        const simRT1 = new THREE.WebGLRenderTarget(width, height, rtOptionsRef.current);
+        const simRT2 = new THREE.WebGLRenderTarget(width, height, rtOptionsRef.current);
+        
+        // Dispose old render targets
+        if (simRT1Ref.current) simRT1Ref.current.dispose();
+        if (simRT2Ref.current) simRT2Ref.current.dispose();
+        
+        simRT1Ref.current = simRT1;
+        simRT2Ref.current = simRT2;
+        currentRTRef.current = simRT1;
+        nextRTRef.current = simRT2;
+        
+        // Update texture references
+        if (simUniformsRef.current) {
+          simUniformsRef.current.u_texture.value = simRT1.texture;
+        }
+        
+        if (finalMaterialRef.current) {
+          finalMaterialRef.current.uniforms.u_texture.value = simRT1.texture;
+        }
+      }
+    };
+
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('resize', handleResize);
 
     // Animation loop
     let lastFrameTime = performance.now();
@@ -241,11 +304,9 @@ const WaterRippleScreen = ({ theme }) => {
       lastFrameTime = now;
       const fps = 1000 / deltaTime;
 
-      // Update FPS buffer
       fpsBuffer.current.push(fps);
       if (fpsBuffer.current.length > fpsBufferSize) fpsBuffer.current.shift();
       
-      // Check average FPS
       if (fpsBuffer.current.length === fpsBufferSize) {
         const avgFPS = fpsBuffer.current.reduce((a, b) => a + b, 0) / fpsBufferSize;
         if (avgFPS < 30) {
@@ -254,23 +315,24 @@ const WaterRippleScreen = ({ theme }) => {
         }
       }
 
-      const newWidth = Math.floor(window.innerWidth * resolutionScale);
-      const newHeight = Math.floor(window.innerHeight * resolutionScale);
+      const currentRT = currentRTRef.current;
+      const nextRT = nextRTRef.current;
       
-      simUniforms.u_resolution.value.set(newWidth, newHeight);
-      finalMaterial.uniforms.u_resolution.value.set(newWidth, newHeight);
-      renderer.setSize(newWidth, newHeight);
+      if (!currentRT || !nextRT || !rendererRef.current) return;
+
+      simUniformsRef.current.u_texture.value = currentRT.texture;
+      simUniformsRef.current.time.value = now / 1000;
     
-      simUniforms.u_texture.value = currentRT.texture;
-      simUniforms.time.value = now / 1000;
+      rendererRef.current.setRenderTarget(nextRT);
+      rendererRef.current.render(simScene, simCamera);
+      rendererRef.current.setRenderTarget(null);
+      
+      // Swap render targets
+      currentRTRef.current = nextRT;
+      nextRTRef.current = currentRT;
     
-      renderer.setRenderTarget(nextRT);
-      renderer.render(simScene, simCamera);
-      renderer.setRenderTarget(null);
-      [currentRT, nextRT] = [nextRT, currentRT];
-    
-      finalMaterial.uniforms.u_texture.value = currentRT.texture;
-      renderer.render(finalScene, orthoCamera);
+      finalMaterialRef.current.uniforms.u_texture.value = nextRT.texture;
+      rendererRef.current.render(finalScene, orthoCamera);
     };
 
     const cleanup = () => {
@@ -280,6 +342,11 @@ const WaterRippleScreen = ({ theme }) => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('resize', handleResize);
+      
+      if (simRT1Ref.current) simRT1Ref.current.dispose();
+      if (simRT2Ref.current) simRT2Ref.current.dispose();
+      
       if (rendererRef.current) {
         rendererRef.current.dispose();
         if (containerRef.current && containerRef.current.contains(rendererRef.current.domElement)) {

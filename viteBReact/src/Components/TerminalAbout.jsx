@@ -167,7 +167,7 @@ const TerminalAbout = () => {
     { 
       type: 'link',
       text: '📄 Download Full Resume (PDF)',
-      url: '/ali-alyasseen-resume.pdf'
+      url: '/ResumeUpdated.pdf'
     },
     { type: 'command', text: 'exit' },
     { type: 'response', text: 'Session maintained - For a list of available commands, type `help`.' },
@@ -238,7 +238,7 @@ const TerminalAbout = () => {
       { 
         type: 'link',
         text: '📄 Download Full Resume (PDF)',
-        url: '/ali-alyasseen-resume.pdf'
+        url: '/ResumeUpdated.pdf'
       }
     ],
     'clear': () => {

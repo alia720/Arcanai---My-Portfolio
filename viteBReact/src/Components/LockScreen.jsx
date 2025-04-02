@@ -171,38 +171,40 @@ const LockScreen = ({ onUnlock }) => {
         />
       ))}
 
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '20px',
-        transform: 'translateY(-50%) rotate(-5deg)',
-        pointerEvents: 'none',
-        zIndex: 1000
-      }}>
         <div style={{
-          fontSize: '2vw',
-          fontFamily: 'monospace',
-          background: 'linear-gradient(45deg, #ff00ff, #00ffff)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-          textShadow: '0 0 15px rgba(255,0,255,0.5)',
-          position: 'relative',
-          padding: '10px 20px',
-          border: '2px solid #00ffff',
-          boxShadow: '0 0 20px rgba(0,255,255,0.3)'
+        position: 'absolute',
+        top: '35%',  // Changed from 50% to position higher
+        left: '50%', // Center horizontally
+        transform: 'translateX(-50%) translateY(-50%) rotate(-5deg)', // Adjusted transform
+        pointerEvents: 'none',
+        zIndex: 1000,
+        width: '90%', // Constrain width for mobile
+        maxWidth: '600px', // Maximum width for larger screens
+        textAlign: 'center' // Center text for mobile
         }}>
-          WELCOME TO MY PORTFOLIO
-          <div style={{
-            fontSize: '1.2vw',
+        <div style={{
+            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', // Responsive font size
+            fontFamily: 'monospace',
+            background: 'linear-gradient(45deg, #ff00ff, #00ffff)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            textShadow: '0 0 15px rgba(255,0,255,0.5)',
+            padding: '10px 20px',
+            border: '2px solid #00ffff',
+            boxShadow: '0 0 20px rgba(0,255,255,0.3)',
+            margin: '0 auto' // Center the text block
+        }}>
+            WELCOME TO MY PORTFOLIO
+            <div style={{
+            fontSize: 'clamp(0.8rem, 2vw, 1.2rem)', // Responsive subtext
             marginTop: '10px',
             textShadow: '0 0 10px rgba(0,255,255,0.5)'
-          }}>
+            }}>
             LOG IN TO LEARN MORE ABOUT ME
-          </div>
+            </div>
         </div>
-      </div>
-
+        </div>
       <div style={{
         position: 'absolute',
         bottom: '6%',

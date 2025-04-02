@@ -4,7 +4,8 @@ const DashboardMetric = ({ label, value, icon, maxValue = 100, color = "cyan" })
   const percentage = (value / maxValue) * 100;
   
   return (
-    <div className="backdrop-blur-lg bg-blue-900/20 rounded-lg p-4 border border-blue-400/20">
+    <div className="backdrop-blur-lg bg-blue-900/20 rounded-lg p-4 border border-blue-400/20"
+    style={{ userSelect: 'none' }}>
       <div className="flex items-center mb-2">
         <div className="mr-2">{icon}</div>
         <h3 className="text-sm font-light tracking-wider bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
