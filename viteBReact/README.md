@@ -1,8 +1,43 @@
-# React + Vite
+<h1 align="center">💻 My Interactive Portfolio 💻</h1>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<p align="center">
+  <a href="https://alialyasseen.com/" target="_blank">View Live Site</a>
+</p>
 
-Currently, two official plugins are available:
+<p align="center">
+  <img src="https://img.shields.io/badge/React-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" alt="React">
+  <img src="https://img.shields.io/badge/Vite-%233C873A.svg?style=for-the-badge&logo=vite&logoColor=%23ffffff" alt="Vite">
+  <img src="https://img.shields.io/badge/Three.js-%23000000.svg?style=for-the-badge&logo=three.js&logoColor=%23ffffff" alt="Three.js">
+  <img src="https://img.shields.io/badge/TailwindCSS-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=%23ffffff" alt="TailwindCSS">
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
+
+## About Me
+
+I'm a Computer Scientist with a passion for web development and creating immersive digital experiences. This portfolio showcases the interactive projects I've built using modern web technologies. Dive into my site and explore how I've used React, Vite, Three.js, and TailwindCSS to bring dynamic visuals and smooth performance to life!
+
+---
+
+## Technologies & Tools
+
+- **React** for building user interfaces  
+- **Vite** for fast and efficient development  
+- **Three.js** for 3D graphics, GPU access and physics base simulation using shaders! 
+- **TailwindCSS** for utility-first styling (and because writing a whole other CSS file is annoying!)
+
+---
+
+## Connect & Explore
+
+- **Live Portfolio with more contact links:** [alialyasseen.com](https://alialyasseen.com/)
+- **GitHub:** [alia720](https://github.com/alia720)
+- **LinkedIn:** [ali-al-yasseen](https://www.linkedin.com/in/ali-al-yasseen-b76a15250/)
+
+Feel free to reach out if you’d like to collaborate or have any questions!
+
+---
+
+<div align="center">
+  <sub>Not sure what people put down here uhhh Goodbye! (https://github.com/alia720)</sub>
+</div>
