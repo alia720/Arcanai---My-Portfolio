@@ -56,7 +56,6 @@ const LockScreen = ({ onUnlock }) => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw connection line
     if (path.length > 1) {
       ctx.beginPath();
       ctx.strokeStyle = '#ff00ff';
@@ -87,7 +86,7 @@ const LockScreen = ({ onUnlock }) => {
     draw();
   }, [draw]);
 
-  // Input handlers
+
   const handleInputStart = (pos) => {
     const startNode = nodes.find(node => 
       Math.abs(pos.x - node.x) < 20 && 
@@ -173,17 +172,17 @@ const LockScreen = ({ onUnlock }) => {
 
         <div style={{
         position: 'absolute',
-        top: '35%',  // Changed from 50% to position higher
-        left: '50%', // Center horizontally
-        transform: 'translateX(-50%) translateY(-50%) rotate(-5deg)', // Adjusted transform
+        top: '35%',
+        left: '50%',
+        transform: 'translateX(-50%) translateY(-50%) rotate(-5deg)',
         pointerEvents: 'none',
         zIndex: 1000,
-        width: '90%', // Constrain width for mobile
-        maxWidth: '600px', // Maximum width for larger screens
-        textAlign: 'center' // Center text for mobile
+        width: '90%',
+        maxWidth: '600px',
+        textAlign: 'center'
         }}>
         <div style={{
-            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', // Responsive font size
+            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
             fontFamily: 'monospace',
             background: 'linear-gradient(45deg, #ff00ff, #00ffff)',
             WebkitBackgroundClip: 'text',
