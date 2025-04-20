@@ -123,6 +123,15 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
+      title: "Recipe Rater",
+      description: "Full‑stack web app for browsing, creating, rating, commenting on, and categorizing recipes with secure Admin & Customer roles, image uploads, and content moderation.",
+      techStack: ["React", "Node.js", "Express", "MySQL", "TailwindCSS", "React Router", "Multer", "Express‑Session", "bcrypt"],
+      image: "/Images/RecipeRater.gif",
+      demoLink: "https://frontend-production-1d79.up.railway.app/",
+      githubLink: "https://github.com/alia720/Recipe-Rater"
+    },
+    {
+      id: 2,
       title: "EggLoL",
       description: "A Discord bot that delivers comprehensive League of Legends champion information and manages user profiles.",
       techStack: ["Python", "PostgreSQL", "BeautifulSoup4", "discord.py", "CRUD"],
@@ -131,7 +140,7 @@ const Projects = () => {
       githubLink: "https://github.com/ALiA720/EGGLOL"
     },
     {
-      id: 2,
+      id: 3,
       title: "RMP-Extension",
       description: "A Chrome extension that seamlessly integrates professor data from the University of Calgary website with ratings from RateMyProfessors.",
       techStack: ["Node.js", "Chrome API", "Puppeteer", "HTML/CSS/JS"],
@@ -140,7 +149,7 @@ const Projects = () => {
       githubLink: "https://github.com/ALiA720/RMP-EXTENSION"
     },
     {
-      id: 3,
+      id: 4,
       title: "Spout",
       description: "An integrated ecosystem for remote sprinkler management that optimizes water usage by enabling remote activation, detailed water tracking, and weather-based watering tips.",
       techStack: ["Python", "Svelte", "PyQt6", "TCP Sockets"],
@@ -150,7 +159,7 @@ const Projects = () => {
       githubLink: "https://github.com/MAiTRA10/SPOUT"
     },
     {
-      id: 4,
+      id: 5,
       title: "Self-Checkout Station Control Software",
       description: "A comprehensive GUI-based self-checkout system developed in Java as part of a 20-member team.",
       techStack: ["Java", "GUI Development", "Team Collaboration", "Case testing"],
@@ -160,7 +169,7 @@ const Projects = () => {
       githubLink: "https://github.com/JackGraver/SENG300-Project-Iteration3"
     },
     {
-      id: 5,
+      id: 6,
       title: "SNESS: A Bare-Metal Snake Game",
       description: "A custom Snake Game implementation at the system level for the Raspberry Pi 4 which uses a custom built SNES driver by interfacing with GPIO pins.",
       techStack: ["C", "Assembly", "Raspberry Pi", "Bare-Metal Programming"],
@@ -169,7 +178,7 @@ const Projects = () => {
       githubLink: "https://github.com/alia720/Rpi4-Game"
     },
     {
-      id: 6,
+      id: 7,
       title: "Cat Chat: Feline-Themed Chat Application",
       description: "A playful chat application featuring a multi-threaded server that handles multiple client connections and a Tkinter GUI client with cat-themed elements, emojis, and special commands.",
       techStack: ["Python", "Tkinter", "Socket Programming", "Multi-threading", "GUI Development"],
@@ -179,7 +188,7 @@ const Projects = () => {
       githubLink: "https://github.com/alia720/CatChat"
     },
     {
-      id: 7,
+      id: 8,
       title: "CustomerReach (WIP)",
       description: "An innovative web application that streamlines the discovery of potential customers through business description analysis and targeted criteria matching.",
       techStack: ["FastDB", "React + Vite", "RabbitMQ", "NLPs", "TailwindCSS", "TypeScript"],
